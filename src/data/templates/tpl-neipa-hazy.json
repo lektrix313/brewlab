@@ -1,0 +1,124 @@
+{
+  "id": "tpl-neipa-hazy",
+  "name": "Hazy IPA (NEIPA)",
+  "description": "Soft, juicy, tropical. Low-bitterness, high-aroma modern IPA. Heavy biotransformation dry-hop schedule transforms hop precursors into pillowy stone-fruit and citrus character.",
+  "style_id": "21B",
+  "difficulty": "intermediate",
+  "estimated_brew_to_ready_days": 14,
+  "base_batch_size_l": 20,
+  "fermentables": [
+    { "fermentable_id": "pale-2-row-us", "amount_kg": 3.5, "use": "mash" },
+    { "fermentable_id": "wheat-malt-pale", "amount_kg": 1.0, "use": "mash" },
+    { "fermentable_id": "flaked-oats", "amount_kg": 0.6, "use": "mash" }
+  ],
+  "hops": [
+    { "hop_id": "magnum", "amount_g": 8, "use": "boil", "time_min": 60, "form": "pellet" },
+    { "hop_id": "citra", "amount_g": 30, "use": "whirlpool", "time_min": 20, "form": "pellet" },
+    { "hop_id": "mosaic", "amount_g": 30, "use": "whirlpool", "time_min": 20, "form": "pellet" },
+    { "hop_id": "galaxy", "amount_g": 30, "use": "whirlpool", "time_min": 20, "form": "pellet" },
+    { "hop_id": "citra", "amount_g": 60, "use": "dry hop", "time_min": 0, "form": "pellet", "_note": "Biotransformation hop — added during active fermentation, day 2" },
+    { "hop_id": "mosaic", "amount_g": 50, "use": "dry hop", "time_min": 0, "form": "pellet", "_note": "Biotransformation hop — day 2" },
+    { "hop_id": "galaxy", "amount_g": 60, "use": "dry hop", "time_min": 0, "form": "pellet", "_note": "Final dry hop — added post-fermentation, day 8" }
+  ],
+  "cultures": [
+    { "culture_id": "imperial-juice", "amount_g_or_ml": 200 }
+  ],
+  "process": {
+    "water_profile": {
+      "name": "NEIPA (chloride-forward)",
+      "calcium_ppm": 100, "magnesium_ppm": 8, "sodium_ppm": 25,
+      "sulfate_ppm": 75, "chloride_ppm": 175, "bicarbonate_ppm": 50,
+      "_note": "Chloride:sulfate ratio ~2.3:1 for soft, juicy mouthfeel"
+    },
+    "mash": {
+      "steps": [
+        { "name": "Saccharification", "temperature_c": 67, "duration_min": 60, "type": "infusion", "rest_purpose": "alpha-amylase" }
+      ],
+      "water_grain_ratio_l_per_kg": 3.2,
+      "sparge": "batch",
+      "target_ph": 5.4
+    },
+    "boil": {
+      "duration_min": 60,
+      "vigour": "rolling",
+      "whirlpool": {
+        "temperature_c": 78,
+        "hold_min": 20
+      }
+    },
+    "fermentation": {
+      "pitch_temp_c": 19,
+      "oxygenation": "shake",
+      "steps": [
+        {
+          "name": "Active fermentation",
+          "type": "primary",
+          "start_condition": { "type": "time-after-pitch", "value": 0 },
+          "temperature_c": 20,
+          "end_condition": { "type": "duration-days", "value": 2 }
+        },
+        {
+          "name": "Biotransformation dry hop",
+          "type": "dry-hop",
+          "start_condition": { "type": "previous-step-end", "value": 0 },
+          "temperature_c": 20,
+          "end_condition": { "type": "duration-days", "value": 4 }
+        },
+        {
+          "name": "Free rise / finish",
+          "type": "free-rise",
+          "start_condition": { "type": "previous-step-end", "value": 0 },
+          "temperature_c": 22,
+          "ramp_rate_c_per_day": 1,
+          "end_condition": { "type": "duration-days", "value": 2 }
+        },
+        {
+          "name": "Final dry hop",
+          "type": "dry-hop",
+          "start_condition": { "type": "previous-step-end", "value": 0 },
+          "temperature_c": 18,
+          "end_condition": { "type": "duration-days", "value": 3 }
+        },
+        {
+          "name": "Cold crash",
+          "type": "crash",
+          "start_condition": { "type": "previous-step-end", "value": 0 },
+          "temperature_c": 1,
+          "ramp_rate_c_per_day": -10,
+          "end_condition": { "type": "duration-days", "value": 2 }
+        }
+      ]
+    },
+    "packaging": {
+      "method": "keg",
+      "carbonation_volumes_co2": 2.4,
+      "force_carb": {
+        "method": "set-and-forget",
+        "pressure_psi": 11,
+        "temperature_c": 1,
+        "duration_hours": 96
+      },
+      "serving_temp_c": 6
+    }
+  },
+  "expected_profile": {
+    "overall_summary": "Pillowy, juicy, tropical. Imagine pouring a glass of liquid stone fruit — passionfruit, mango, peach — over a soft oat-and-wheat backbone. Bitterness sits in the background; aroma does all the talking.",
+    "dominant_descriptors": ["passionfruit", "mango", "peach", "tropical", "soft", "pillowy"],
+    "body": "medium-full",
+    "bitterness_perception": "medium",
+    "sweetness": "balanced",
+    "finish": "Soft, juicy, slightly creamy — no harsh edges"
+  },
+  "tips": [
+    "Oxygen is the enemy. Every transfer is a chance to oxidise away the hop oils. Purge everything with CO2 and don't open the fermenter once dry hops go in.",
+    "The biotransformation dry hop on day 2 (during active fermentation) is what gives NEIPAs their distinctive character — yeast metabolises hop precursors into new fruity compounds.",
+    "Don't bottle. Hazy IPAs and bottle conditioning don't mix. Keg if you possibly can.",
+    "Drink very fresh. NEIPAs are a 2-week beer at peak. After 4 weeks they're fading."
+  ],
+  "common_mistakes": [
+    "Sulfate-forward water (turns it harsh and astringent)",
+    "Dry-hopping all in one massive late addition (you lose the biotransformation effect)",
+    "Letting oxygen in during transfers (the beer will brown and lose hop character within days)",
+    "Aging too long (drink within 4 weeks of packaging)"
+  ]
+}

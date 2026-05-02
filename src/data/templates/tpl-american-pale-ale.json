@@ -1,0 +1,101 @@
+{
+  "id": "tpl-american-pale-ale",
+  "name": "American Pale Ale",
+  "description": "The accessible, balanced introduction to American craft beer. Citrusy and piney without the aggression of an IPA. Ideal first brew — single mash step, single fermentation temperature, forgiving across measurements.",
+  "style_id": "18B",
+  "difficulty": "beginner",
+  "estimated_brew_to_ready_days": 14,
+  "base_batch_size_l": 20,
+  "fermentables": [
+    { "fermentable_id": "pale-2-row-us", "amount_kg": 4.0, "use": "mash" },
+    { "fermentable_id": "munich-light-weyermann", "amount_kg": 0.3, "use": "mash" },
+    { "fermentable_id": "crystal-60-crisp", "amount_kg": 0.2, "use": "mash" }
+  ],
+  "hops": [
+    { "hop_id": "centennial", "amount_g": 25, "use": "boil", "time_min": 60, "form": "pellet" },
+    { "hop_id": "cascade", "amount_g": 25, "use": "boil", "time_min": 15, "form": "pellet" },
+    { "hop_id": "cascade", "amount_g": 25, "use": "boil", "time_min": 0, "form": "pellet" },
+    { "hop_id": "centennial", "amount_g": 30, "use": "dry hop", "time_min": 0, "form": "pellet" }
+  ],
+  "cultures": [
+    { "culture_id": "us-05", "amount_g_or_ml": 11.5 }
+  ],
+  "process": {
+    "water_profile": {
+      "name": "Balanced (slightly hop-forward)",
+      "calcium_ppm": 80, "magnesium_ppm": 8, "sodium_ppm": 25,
+      "sulfate_ppm": 150, "chloride_ppm": 80, "bicarbonate_ppm": 50
+    },
+    "mash": {
+      "steps": [
+        { "name": "Saccharification", "temperature_c": 66, "duration_min": 60, "type": "infusion", "rest_purpose": "alpha-amylase" }
+      ],
+      "water_grain_ratio_l_per_kg": 3.0,
+      "sparge": "batch",
+      "target_ph": 5.4
+    },
+    "boil": {
+      "duration_min": 60,
+      "vigour": "rolling"
+    },
+    "fermentation": {
+      "pitch_temp_c": 18,
+      "oxygenation": "shake",
+      "steps": [
+        {
+          "name": "Primary",
+          "type": "primary",
+          "start_condition": { "type": "time-after-pitch", "value": 0 },
+          "temperature_c": 19,
+          "end_condition": { "type": "duration-days", "value": 7 }
+        },
+        {
+          "name": "Dry hop",
+          "type": "dry-hop",
+          "start_condition": { "type": "previous-step-end", "value": 0 },
+          "temperature_c": 19,
+          "end_condition": { "type": "duration-days", "value": 3 }
+        },
+        {
+          "name": "Cold crash",
+          "type": "crash",
+          "start_condition": { "type": "previous-step-end", "value": 0 },
+          "temperature_c": 2,
+          "ramp_rate_c_per_day": -8,
+          "end_condition": { "type": "duration-days", "value": 2 }
+        }
+      ]
+    },
+    "packaging": {
+      "method": "bottle",
+      "carbonation_volumes_co2": 2.4,
+      "bottle_priming": {
+        "sugar_type": "corn-sugar",
+        "sugar_g_per_l": 4.0,
+        "conditioning_temp_c": 20,
+        "conditioning_days": 14
+      },
+      "serving_temp_c": 7
+    }
+  },
+  "expected_profile": {
+    "overall_summary": "Clean, citrusy, balanced. Grapefruit and pine on the nose, soft caramel malt backbone, gentle but present bitterness. The kind of beer you can drink three of without getting palate-fatigued.",
+    "dominant_descriptors": ["grapefruit", "floral citrus", "light caramel", "subtle pine"],
+    "body": "medium",
+    "bitterness_perception": "medium",
+    "sweetness": "balanced",
+    "finish": "Clean, slightly bitter, refreshingly dry"
+  },
+  "tips": [
+    "This template is designed to be forgiving — if your fermentation runs at 17°C or 21°C, you'll still get a good beer.",
+    "US-05 is the most beginner-friendly yeast in homebrewing. Sprinkle it on dry, wait 24 hours.",
+    "Bottle-conditioning is fine for a pale ale — give it 2 full weeks at room temp before chilling.",
+    "Don't fuss with water chemistry on your first brew. Use whatever's coming out of the tap (or filtered, if it's heavily chlorinated)."
+  ],
+  "common_mistakes": [
+    "Worrying too much about temperature (US-05 is forgiving 16-22°C)",
+    "Bottling too early (give it the full 2 weeks)",
+    "Drinking too soon — wait at least 14 days from bottling for proper carbonation",
+    "Overcomplicating the recipe (this is the simple-brew template — keep it simple)"
+  ]
+}

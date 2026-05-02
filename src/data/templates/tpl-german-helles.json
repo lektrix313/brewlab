@@ -1,0 +1,113 @@
+{
+  "id": "tpl-german-helles",
+  "name": "German Helles (Lager)",
+  "description": "Bavarian pale lager — soft, malty, clean. The classic European pub beer. Showcases the full lager workflow: cold pitch, primary, diacetyl rest, lagering ramp, and extended cold conditioning.",
+  "style_id": "5A",
+  "difficulty": "advanced",
+  "estimated_brew_to_ready_days": 49,
+  "base_batch_size_l": 20,
+  "fermentables": [
+    { "fermentable_id": "pilsner-weyermann", "amount_kg": 4.0, "use": "mash" },
+    { "fermentable_id": "munich-light-weyermann", "amount_kg": 0.4, "use": "mash" }
+  ],
+  "hops": [
+    { "hop_id": "hallertau-mittelfruh", "amount_g": 30, "use": "boil", "time_min": 60, "form": "pellet" },
+    { "hop_id": "hallertau-mittelfruh", "amount_g": 25, "use": "boil", "time_min": 15, "form": "pellet" },
+    { "hop_id": "hallertau-mittelfruh", "amount_g": 20, "use": "boil", "time_min": 0, "form": "pellet" }
+  ],
+  "cultures": [
+    { "culture_id": "w-3470", "amount_g_or_ml": 23, "_note": "TWO packets — pitch heavy for lager" }
+  ],
+  "process": {
+    "water_profile": {
+      "name": "Pilsen (soft)",
+      "calcium_ppm": 7, "magnesium_ppm": 2, "sodium_ppm": 2,
+      "sulfate_ppm": 5, "chloride_ppm": 5, "bicarbonate_ppm": 15
+    },
+    "mash": {
+      "steps": [
+        { "name": "Protein rest", "temperature_c": 52, "duration_min": 15, "type": "infusion", "rest_purpose": "protein" },
+        { "name": "Sacc rest 1", "temperature_c": 63, "duration_min": 30, "type": "temperature", "rest_purpose": "beta-amylase" },
+        { "name": "Sacc rest 2", "temperature_c": 72, "duration_min": 30, "type": "temperature", "rest_purpose": "alpha-amylase" },
+        { "name": "Mash out", "temperature_c": 76, "duration_min": 10, "type": "temperature", "rest_purpose": "mash-out" }
+      ],
+      "water_grain_ratio_l_per_kg": 3.5,
+      "sparge": "fly",
+      "target_ph": 5.4
+    },
+    "boil": {
+      "duration_min": 90,
+      "vigour": "vigorous"
+    },
+    "fermentation": {
+      "pitch_temp_c": 9,
+      "pitch_rate_million_cells_per_ml_per_plato": 1.8,
+      "oxygenation": "pure-o2",
+      "steps": [
+        {
+          "name": "Primary",
+          "type": "primary",
+          "start_condition": { "type": "time-after-pitch", "value": 0 },
+          "temperature_c": 11,
+          "end_condition": { "type": "attenuation-pct", "value": 55 }
+        },
+        {
+          "name": "Diacetyl rest (free rise)",
+          "type": "diacetyl-rest",
+          "start_condition": { "type": "previous-step-end", "value": 0 },
+          "temperature_c": 16,
+          "ramp_rate_c_per_day": 4,
+          "end_condition": { "type": "duration-days", "value": 3 }
+        },
+        {
+          "name": "Cold crash ramp",
+          "type": "crash",
+          "start_condition": { "type": "previous-step-end", "value": 0 },
+          "temperature_c": 1,
+          "ramp_rate_c_per_day": -2.5,
+          "end_condition": { "type": "temp-reaches", "value": 1 }
+        },
+        {
+          "name": "Lagering",
+          "type": "lagering",
+          "start_condition": { "type": "previous-step-end", "value": 0 },
+          "temperature_c": 1,
+          "end_condition": { "type": "duration-days", "value": 35 }
+        }
+      ]
+    },
+    "packaging": {
+      "method": "keg",
+      "carbonation_volumes_co2": 2.6,
+      "force_carb": {
+        "method": "set-and-forget",
+        "pressure_psi": 12,
+        "temperature_c": 1,
+        "duration_hours": 168
+      },
+      "serving_temp_c": 4
+    }
+  },
+  "expected_profile": {
+    "overall_summary": "Soft, malty, clean. Bready Pilsner malt up front, gentle noble hop spice, dry-but-not-aggressive finish. Built for drinking by the litre, not by the half.",
+    "dominant_descriptors": ["bready", "honey", "soft malt", "noble herbal"],
+    "body": "medium-light",
+    "bitterness_perception": "medium-low",
+    "sweetness": "balanced",
+    "finish": "Clean, slightly soft, with a faint herbal hop note lingering"
+  },
+  "tips": [
+    "Pitch cold. 9°C is not optional — pitching warm is the #1 way to ruin a lager.",
+    "Pitch heavy. Two packets of W-34/70 minimum, ideally a starter or three packets for 20L.",
+    "Don't skip the diacetyl rest. The 16°C free-rise scrubs the buttery off-flavour you don't want.",
+    "Lager slowly. Drop temperature 2-3°C per day, not all at once.",
+    "Lagering is the difference between an okay Helles and a great one. Don't rush it."
+  ],
+  "common_mistakes": [
+    "Pitching too warm (gives fruity esters that don't belong)",
+    "Skipping the diacetyl rest (leaves a buttery off-note)",
+    "Crashing too fast (stresses yeast, leaves DMS)",
+    "Bottling too soon (under-conditioned, lacks clarity)",
+    "Using ale yeast 'because it's faster' (you're making an ale, not a lager)"
+  ]
+}

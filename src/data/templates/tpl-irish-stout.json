@@ -1,0 +1,94 @@
+{
+  "id": "tpl-irish-stout",
+  "name": "Irish Stout",
+  "description": "Dry, roasty, sessionable. The Guinness archetype — black as night, easy as a Tuesday afternoon. Roasted barley does most of the work. Ideal first dark beer because the strong roast character covers minor brewing flaws.",
+  "style_id": "15B",
+  "difficulty": "beginner",
+  "estimated_brew_to_ready_days": 14,
+  "base_batch_size_l": 20,
+  "fermentables": [
+    { "fermentable_id": "maris-otter-crisp", "amount_kg": 3.0, "use": "mash" },
+    { "fermentable_id": "flaked-oats", "amount_kg": 0.4, "use": "mash" },
+    { "fermentable_id": "roasted-barley", "amount_kg": 0.3, "use": "mash" }
+  ],
+  "hops": [
+    { "hop_id": "fuggle", "amount_g": 35, "use": "boil", "time_min": 60, "form": "pellet" },
+    { "hop_id": "east-kent-goldings", "amount_g": 15, "use": "boil", "time_min": 15, "form": "pellet" }
+  ],
+  "cultures": [
+    { "culture_id": "s-04", "amount_g_or_ml": 11.5 }
+  ],
+  "process": {
+    "water_profile": {
+      "name": "Dublin (high-bicarbonate, balances roast)",
+      "calcium_ppm": 115, "magnesium_ppm": 4, "sodium_ppm": 12,
+      "sulfate_ppm": 55, "chloride_ppm": 19, "bicarbonate_ppm": 280
+    },
+    "mash": {
+      "steps": [
+        { "name": "Saccharification", "temperature_c": 67, "duration_min": 60, "type": "infusion", "rest_purpose": "alpha-amylase" }
+      ],
+      "water_grain_ratio_l_per_kg": 2.8,
+      "sparge": "batch",
+      "target_ph": 5.4
+    },
+    "boil": {
+      "duration_min": 60,
+      "vigour": "rolling"
+    },
+    "fermentation": {
+      "pitch_temp_c": 18,
+      "oxygenation": "shake",
+      "steps": [
+        {
+          "name": "Primary",
+          "type": "primary",
+          "start_condition": { "type": "time-after-pitch", "value": 0 },
+          "temperature_c": 19,
+          "end_condition": { "type": "duration-days", "value": 7 }
+        },
+        {
+          "name": "Cold crash",
+          "type": "crash",
+          "start_condition": { "type": "previous-step-end", "value": 0 },
+          "temperature_c": 2,
+          "ramp_rate_c_per_day": -8,
+          "end_condition": { "type": "duration-days", "value": 2 }
+        }
+      ]
+    },
+    "packaging": {
+      "method": "bottle",
+      "carbonation_volumes_co2": 1.8,
+      "bottle_priming": {
+        "sugar_type": "corn-sugar",
+        "sugar_g_per_l": 3.0,
+        "conditioning_temp_c": 20,
+        "conditioning_days": 14
+      },
+      "serving_temp_c": 8,
+      "_note": "Traditionally served low-carb on nitro. If kegging, nitro and stout faucet are the dream."
+    }
+  },
+  "expected_profile": {
+    "overall_summary": "Coffee, dark chocolate, dry-roast finish. The oats add a silky body that softens the roasted barley's sharpness. Surprisingly light and drinkable for something this dark.",
+    "dominant_descriptors": ["coffee", "dark chocolate", "roast", "silky oats", "subtle bitter"],
+    "body": "medium",
+    "bitterness_perception": "medium",
+    "sweetness": "dry",
+    "finish": "Dry, roasty, lingering coffee bitterness"
+  },
+  "tips": [
+    "Roasted barley (not roasted MALT) is the key. They taste different — sharper, drier.",
+    "The flaked oats make a real difference to mouthfeel. Don't skip them.",
+    "Stout is forgiving. The strong roast character masks minor faults — perfect for early brews.",
+    "If you can serve on nitro, do it. Otherwise low carbonation gets close to the cask experience.",
+    "Improves with 2-3 weeks of conditioning — flavours integrate and the roast bitterness softens."
+  ],
+  "common_mistakes": [
+    "Using chocolate malt instead of roasted barley (different beer entirely — closer to a porter)",
+    "Over-carbonating (stout should be soft, not sharp)",
+    "Serving fridge-cold (suppresses the roast character — let it warm up to ~8-10°C)",
+    "Adding too much roasted barley (300g is plenty — more becomes acrid)"
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "id": "tpl-west-coast-ipa-classic",
+  "name": "Classic West Coast IPA",
+  "description": "Dry, bitter, hop-forward. The IPA that defined the modern craft beer movement. Clean fermentation lets pine, citrus, and resin push to the front.",
+  "style_id": "21A",
+  "difficulty": "intermediate",
+  "estimated_brew_to_ready_days": 17,
+  "base_batch_size_l": 20,
+  "fermentables": [
+    { "fermentable_id": "pale-2-row-us", "amount_kg": 4.5, "use": "mash" },
+    { "fermentable_id": "munich-light-weyermann", "amount_kg": 0.4, "use": "mash" },
+    { "fermentable_id": "crystal-60-crisp", "amount_kg": 0.25, "use": "mash" }
+  ],
+  "hops": [
+    { "hop_id": "magnum", "amount_g": 25, "use": "boil", "time_min": 60, "form": "pellet" },
+    { "hop_id": "centennial", "amount_g": 30, "use": "boil", "time_min": 15, "form": "pellet" },
+    { "hop_id": "simcoe", "amount_g": 30, "use": "boil", "time_min": 5, "form": "pellet" },
+    { "hop_id": "citra", "amount_g": 80, "use": "dry hop", "time_min": 0, "form": "pellet" },
+    { "hop_id": "simcoe", "amount_g": 50, "use": "dry hop", "time_min": 0, "form": "pellet" }
+  ],
+  "cultures": [
+    { "culture_id": "us-05", "amount_g_or_ml": 11.5 }
+  ],
+  "process": {
+    "water_profile": {
+      "name": "West Coast (sulfate-forward)",
+      "calcium_ppm": 100, "magnesium_ppm": 8, "sodium_ppm": 25,
+      "sulfate_ppm": 250, "chloride_ppm": 60, "bicarbonate_ppm": 50
+    },
+    "mash": {
+      "steps": [
+        { "name": "Saccharification", "temperature_c": 66, "duration_min": 60, "type": "infusion", "rest_purpose": "alpha-amylase" }
+      ],
+      "water_grain_ratio_l_per_kg": 3.0,
+      "sparge": "batch",
+      "target_ph": 5.3
+    },
+    "boil": {
+      "duration_min": 60,
+      "vigour": "rolling"
+    },
+    "fermentation": {
+      "pitch_temp_c": 18,
+      "oxygenation": "shake",
+      "steps": [
+        {
+          "name": "Primary",
+          "type": "primary",
+          "start_condition": { "type": "time-after-pitch", "value": 0 },
+          "temperature_c": 19,
+          "end_condition": { "type": "duration-days", "value": 7 }
+        },
+        {
+          "name": "Dry hop",
+          "type": "dry-hop",
+          "start_condition": { "type": "previous-step-end", "value": 0 },
+          "temperature_c": 19,
+          "end_condition": { "type": "duration-days", "value": 4 }
+        },
+        {
+          "name": "Cold crash",
+          "type": "crash",
+          "start_condition": { "type": "previous-step-end", "value": 0 },
+          "temperature_c": 1,
+          "ramp_rate_c_per_day": -10,
+          "end_condition": { "type": "duration-days", "value": 2 }
+        }
+      ]
+    },
+    "packaging": {
+      "method": "keg",
+      "carbonation_volumes_co2": 2.5,
+      "force_carb": {
+        "method": "set-and-forget",
+        "pressure_psi": 12,
+        "temperature_c": 1,
+        "duration_hours": 96
+      },
+      "serving_temp_c": 6
+    }
+  },
+  "expected_profile": {
+    "overall_summary": "Pine and grapefruit on the nose, sticky resinous citrus on the palate, and a clean, dry, bitter finish that pulls you back for the next sip. The OG American IPA experience.",
+    "dominant_descriptors": ["grapefruit", "pine", "resinous", "citrus", "bready malt"],
+    "body": "medium-light",
+    "bitterness_perception": "high",
+    "sweetness": "dry",
+    "finish": "Crisp, dry, lingering hop bitterness — no sweetness left to soften it"
+  },
+  "tips": [
+    "Sulfate is the secret. The 250ppm SO4 is what makes the bitterness feel sharp and dry rather than dull.",
+    "Cold crash before dry-hopping is debatable; this template doesn't, to maximise hop oil retention.",
+    "Drink fresh. WCIPA is not a beer that improves with age — best within 6 weeks of packaging.",
+    "Don't skimp on the bittering. 25g of Magnum at 60min is the backbone."
+  ],
+  "common_mistakes": [
+    "Too much crystal malt (sweetens the finish, dulls the hops)",
+    "Fermentation too warm (esters muddle the hop character)",
+    "Dry-hopping for too long (>5 days extracts grassy/vegetal notes)",
+    "Letting it sit around (hops fade fast — drink it)"
+  ]
+}

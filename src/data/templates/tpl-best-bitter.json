@@ -1,0 +1,95 @@
+{
+  "id": "tpl-best-bitter",
+  "name": "Best Bitter",
+  "description": "The British pub classic. Malty, balanced, sessionable. Heritage Maris Otter and English noble hops over a fruity ale yeast. Cask-conditioned in spirit, but bottle works fine for homebrewers.",
+  "style_id": "11B",
+  "difficulty": "beginner",
+  "estimated_brew_to_ready_days": 18,
+  "base_batch_size_l": 20,
+  "fermentables": [
+    { "fermentable_id": "maris-otter-crisp", "amount_kg": 3.8, "use": "mash" },
+    { "fermentable_id": "crystal-60-crisp", "amount_kg": 0.3, "use": "mash" },
+    { "fermentable_id": "biscuit-malt", "amount_kg": 0.15, "use": "mash" }
+  ],
+  "hops": [
+    { "hop_id": "east-kent-goldings", "amount_g": 30, "use": "boil", "time_min": 60, "form": "pellet" },
+    { "hop_id": "fuggle", "amount_g": 20, "use": "boil", "time_min": 15, "form": "pellet" },
+    { "hop_id": "east-kent-goldings", "amount_g": 20, "use": "boil", "time_min": 5, "form": "pellet" }
+  ],
+  "cultures": [
+    { "culture_id": "s-04", "amount_g_or_ml": 11.5 }
+  ],
+  "process": {
+    "water_profile": {
+      "name": "Burton-on-Trent (sulfate-rich, classic)",
+      "calcium_ppm": 275, "magnesium_ppm": 40, "sodium_ppm": 25,
+      "sulfate_ppm": 450, "chloride_ppm": 35, "bicarbonate_ppm": 240
+    },
+    "mash": {
+      "steps": [
+        { "name": "Saccharification", "temperature_c": 67, "duration_min": 60, "type": "infusion", "rest_purpose": "alpha-amylase" }
+      ],
+      "water_grain_ratio_l_per_kg": 2.8,
+      "sparge": "batch",
+      "target_ph": 5.4
+    },
+    "boil": {
+      "duration_min": 60,
+      "vigour": "rolling"
+    },
+    "fermentation": {
+      "pitch_temp_c": 18,
+      "oxygenation": "shake",
+      "steps": [
+        {
+          "name": "Primary",
+          "type": "primary",
+          "start_condition": { "type": "time-after-pitch", "value": 0 },
+          "temperature_c": 19,
+          "end_condition": { "type": "duration-days", "value": 6 }
+        },
+        {
+          "name": "Conditioning",
+          "type": "secondary",
+          "start_condition": { "type": "previous-step-end", "value": 0 },
+          "temperature_c": 12,
+          "ramp_rate_c_per_day": -3,
+          "end_condition": { "type": "duration-days", "value": 4 }
+        }
+      ]
+    },
+    "packaging": {
+      "method": "bottle",
+      "carbonation_volumes_co2": 1.8,
+      "bottle_priming": {
+        "sugar_type": "corn-sugar",
+        "sugar_g_per_l": 3.0,
+        "conditioning_temp_c": 18,
+        "conditioning_days": 14
+      },
+      "serving_temp_c": 12,
+      "_note": "Lower carbonation (1.8 vols) and warmer serving temp (12°C) is traditional. If kegging, target 1.8-2.0 vols."
+    }
+  },
+  "expected_profile": {
+    "overall_summary": "Bready, biscuity, gently fruity. Maris Otter malt does the heavy lifting; EKG and Fuggle add an earthy, slightly floral hop layer; S-04's stone-fruit esters tie it together. A pint of England.",
+    "dominant_descriptors": ["biscuit", "bread crust", "stone fruit", "earthy hops", "honey"],
+    "body": "medium",
+    "bitterness_perception": "medium",
+    "sweetness": "balanced",
+    "finish": "Dry-leaning balanced finish with lingering biscuity malt and a soft hop note"
+  },
+  "tips": [
+    "Maris Otter is the soul of this style. Don't substitute pale 2-row.",
+    "Serve warmer than you think — 12°C, not lager-cold. Cold suppresses the malt character.",
+    "Lower carbonation is correct for the style. If pouring from a keg, dial it back to ~1.8 vols.",
+    "S-04 floccs hard — let it sit for 4 days at room temp after primary before crashing for proper clarity.",
+    "If you can keg, conditioning at 12°C for a week before serving is worth the wait."
+  ],
+  "common_mistakes": [
+    "Over-carbonating (this is not a 2.6-vols beer)",
+    "Serving too cold (loses the malt character)",
+    "Substituting US 2-row for Maris Otter (the malt IS the recipe here)",
+    "Using American hops (changes the style entirely — that's an APA, not a Bitter)"
+  ]
+}
