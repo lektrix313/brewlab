@@ -2,8 +2,18 @@
  * Higher-level brewing helpers that combine calculations.
  */
 
-import { FermentableAddition, HopAddition, CultureAddition } from '../beerjson/types';
-import { predictOG, predictFG, calculateABV, calculateIBU, calculateSRM, srmToEbc } from './calculations';
+import { FermentableAddition, HopAddition, CultureAddition, Recipe, WaterProfile } from '../beerjson/types';
+import {
+  predictOG,
+  predictFG,
+  calculateABV,
+  calculateIBU,
+  calculateSRM,
+  srmToEbc,
+  fullyScaleRecipe,
+  calculateWaterChemistry,
+  WaterChemistry,
+} from './calculations';
 
 export function calculateRecipeStats(
   fermentables: FermentableAddition[],
@@ -28,3 +38,18 @@ export function calculateRecipeStats(
     estimated_ebc,
   };
 }
+
+export function scaleRecipeToBatchSize(recipe: Recipe, newBatchL: number): Recipe {
+  return fullyScaleRecipe(recipe, newBatchL);
+}
+
+export function getRecipeWaterChemistry(recipe: Recipe): WaterChemistry {
+  return calculateWaterChemistry(
+    recipe.process.water_profile,
+    recipe.fermentables,
+    recipe.batch_size_l,
+    recipe.process.mash.water_grain_ratio_l_per_kg,
+  );
+}
+
+export { calculateWaterChemistry, WaterChemistry };

@@ -8,8 +8,14 @@ import {
   srmToHex,
   srmToEbc,
   ebcToSrm,
+  fullyScaleRecipe,
+  calculateResidualAlkalinity,
+  calculateSulfateChlorideRatio,
+  estimateMashPH,
+  calculatePrimingSugar,
+  calculateWhirlpoolIBU,
 } from '../../src/lib/brewing/calculations';
-import type { FermentableAddition, HopAddition, CultureAddition } from '../../src/lib/beerjson/types';
+import type { FermentableAddition, HopAddition, CultureAddition, Recipe, WaterProfile } from '../../src/lib/beerjson/types';
 
 // ─── West Coast IPA reference recipe (from sample-recipes/west-coast-ipa.json) ──
 
@@ -199,5 +205,114 @@ describe('ABV calculation edge cases', () => {
   it('returns a positive value for typical attenuation', () => {
     expect(calculateABV(1.060, 1.012)).toBeGreaterThan(5);
     expect(calculateABV(1.060, 1.012)).toBeLessThan(8);
+  });
+});
+
+describe('Recipe scaling', () => {
+  it('scales ingredient amounts proportionally', () => {
+    const recipe: Recipe = {
+      id: 'test',
+      author_id: 'user',
+      name: 'Test IPA',
+      type: 'all grain',
+      batch_size_l: 20,
+      efficiency_pct: 75,
+      fermentables,
+      hops,
+      cultures,
+      process: {
+        water_profile: {
+          calcium_ppm: 50, magnesium_ppm: 5, sodium_ppm: 10,
+          sulfate_ppm: 100, chloride_ppm: 50, bicarbonate_ppm: 50,
+        },
+        mash: { steps: [], water_grain_ratio_l_per_kg: 3, sparge: 'batch', target_ph: 5.4 },
+        boil: { duration_min: 60, vigour: 'rolling' },
+        fermentation: {
+          steps: [{ name: 'Primary', type: 'primary', start_condition: { type: 'time-after-pitch', value: 0 }, temperature_c: 20, end_condition: { type: 'duration-days', value: 7 } }],
+          pitch_temp_c: 20,
+          oxygenation: 'shake',
+        },
+        packaging: { method: 'bottle', carbonation_volumes_co2: 2.4, serving_temp_c: 12 },
+      },
+      estimated_og: 1.061,
+      estimated_fg: 1.013,
+      estimated_abv_pct: 6.3,
+      estimated_ibu: 58,
+      estimated_srm: 8,
+      estimated_ebc: 16,
+      is_public: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    const scaled = fullyScaleRecipe(recipe, 10);
+    expect(scaled.batch_size_l).toBe(10);
+    expect(scaled.fermentables[0].amount_kg).toBeCloseTo(2.25, 2);
+    expect(scaled.hops[0].amount_g).toBeCloseTo(12.5, 1);
+    expect(scaled.cultures[0].amount_g_or_ml).toBeCloseTo(5.75, 2);
+    // Stats should be recomputed (similar since linear scale)
+    expect(scaled.estimated_og).toBeGreaterThan(1);
+    expect(scaled.estimated_ibu).toBeGreaterThan(0);
+  });
+});
+
+describe('Water chemistry', () => {
+  const water: WaterProfile = {
+    calcium_ppm: 50,
+    magnesium_ppm: 5,
+    sodium_ppm: 10,
+    sulfate_ppm: 100,
+    chloride_ppm: 50,
+    bicarbonate_ppm: 50,
+  };
+
+  it('calculates residual alkalinity', () => {
+    const ra = calculateResidualAlkalinity(water);
+    expect(ra).not.toBeNaN();
+    expect(typeof ra).toBe('number');
+  });
+
+  it('calculates sulfate:chloride ratio', () => {
+    const result = calculateSulfateChlorideRatio(water);
+    expect(result.ratio).toBeCloseTo(2.0, 1);
+    expect(result.character).toBe('very hoppy');
+  });
+
+  it('estimates mash pH in realistic range', () => {
+    const ph = estimateMashPH(water, fermentables, 20, 3);
+    expect(ph).toBeGreaterThanOrEqual(4.8);
+    expect(ph).toBeLessThanOrEqual(6.0);
+  });
+});
+
+describe('Priming sugar', () => {
+  it('calculates corn sugar for typical ale', () => {
+    const sugar = calculatePrimingSugar(20, 2.4, 20, 'corn-sugar');
+    // At 20°C residual CO2 ≈ 2.14 vols, need ~0.26 vols → ~20-21g for 20L
+    expect(sugar).toBeGreaterThan(15);
+    expect(sugar).toBeLessThan(30);
+  });
+});
+
+describe('Whirlpool IBU', () => {
+  it('returns lower IBU than equivalent boil addition', () => {
+    const whirlpoolHops: HopAddition[] = [{
+      hop_id: 'citra',
+      hop: { id: 'citra', name: 'Citra', origin: 'US', type: 'dual', alpha_pct: 12, flavour_descriptors: ['citrus'] },
+      amount_g: 50,
+      use: 'whirlpool',
+      time_min: 15,
+    }];
+    const boilHops: HopAddition[] = [{
+      hop_id: 'citra',
+      hop: { id: 'citra', name: 'Citra', origin: 'US', type: 'dual', alpha_pct: 12, flavour_descriptors: ['citrus'] },
+      amount_g: 50,
+      use: 'boil',
+      time_min: 15,
+    }];
+    const og = 1.060;
+    const whirlpoolIBU = calculateWhirlpoolIBU(whirlpoolHops, 20, og, 80);
+    const boilIBU = calculateIBU(boilHops, 20, og);
+    expect(whirlpoolIBU).toBeLessThan(boilIBU);
   });
 });

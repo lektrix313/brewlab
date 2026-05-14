@@ -2,10 +2,17 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAppStore } from '../../../src/stores/appStore';
-import { ChevronLeft, Settings } from 'lucide-react-native';
+import { ChevronLeft, Settings, PoundSterling, Calculator } from 'lucide-react-native';
 import { srmToHex } from '../../../src/lib/brewing/calculations';
-import { buildPredictedCurve } from '../../../src/lib/brewing/fermentation';
-import { useMemo } from 'react';
+import { formatTemp, formatVolume } from '../../../src/lib/units';
+import { useAppStore } from '../../../src/stores/appStore';
+import { hapticImpact } from '../../../src/lib/haptics';
+import FermenterCanvas from '../../../src/components/fermenter/FermenterCanvas';
+import CelebrationBurst from '../../../src/components/fermenter/CelebrationBurst';
+import { buildPredictedCurve, refitCurve, fermentationParamsForRecipe, predictGravityAt, predictABVAt, statusFromProgress } from '../../../src/lib/brewing/fermentation';
+import { getRecipeWaterChemistry } from '../../../src/lib/brewing/helpers';
+import { useMemo, useState, useEffect, useRef } from 'react';
+import { calculateBatchCost, costPerPint } from '../../../src/lib/costs';
 import { BatchStatus } from '../../../src/lib/beerjson/types';
 import Svg, { Path, Circle, Text as SvgText } from 'react-native-svg';
 
@@ -37,11 +44,13 @@ function GravityChart({
   og,
   fg,
   currentHour,
+  measurements,
 }: {
   curve: { hours_since_pitch: number; predicted_gravity_sg: number }[];
   og: number;
   fg: number;
   currentHour: number;
+  measurements: { hours_since_pitch: number; gravity_sg: number }[];
 }) {
   const width = 300;
   const height = 130;
@@ -85,7 +94,14 @@ function GravityChart({
         <Text style={[F.body, { fontSize: 11, color: '#6E6E6E', textTransform: 'uppercase', letterSpacing: 1.5 }]}>
           Gravity Curve
         </Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 16 }}>
+        {isRefit && (
+          <View style={{ backgroundColor: '#E2E8DE', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999, marginLeft: 8 }}>
+            <Text style={[F.bodyMedium, { fontSize: 10, color: '#5C6A54', textTransform: 'uppercase', letterSpacing: 0.5 }]}>
+              Refit from {gravityMeasurements.length} readings
+            </Text>
+          </View>
+        )}
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 'auto' }}>
           <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#B8633A', marginRight: 6 }} />
           <Text style={[F.body, { fontSize: 13, color: '#3D3D3D' }]}>Actual</Text>
         </View>
@@ -130,66 +146,25 @@ function GravityChart({
         <Path d={targetPath} fill="none" stroke="#6E6E6E" strokeWidth="1" strokeDasharray="4 4" opacity={0.5} />
         {actualPath && <Path d={actualPath} fill="none" stroke="#B8633A" strokeWidth="2" />}
         <Circle cx={currentX} cy={currentY} r="5" fill="#B8633A" />
+
+        {/* Real measurement points */}
+        {measurements.map((m, i) => (
+          <Circle
+            key={`meas-${i}`}
+            cx={xScale(m.hours_since_pitch)}
+            cy={yScale(m.gravity_sg)}
+            r="4"
+            fill="#1A1A1A"
+            stroke="#F5F0E6"
+            strokeWidth="1.5"
+          />
+        ))}
       </Svg>
     </View>
   );
 }
 
-function FermenterVessel({ srmColor, status, abv, profile }: { srmColor: string; status: BatchStatus; abv: number; profile: string }) {
-  const hasKrausen = status === 'active-fermentation' || status === 'attenuating';
-  const isBubbling = status === 'active-fermentation';
-  const fillHeight = status === 'planned' || status === 'brew-day' ? '30%' : status === 'lag-phase' ? '65%' : '75%';
 
-  return (
-    <View style={{ alignItems: 'center', marginVertical: 20 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-        {/* Potential ABV */}
-        <View style={{ alignItems: 'center' }}>
-          <Text style={[F.body, { fontSize: 10, color: '#6E6E6E', textTransform: 'uppercase', letterSpacing: 1.5 }]}>Potential ABV</Text>
-          <Text style={[F.mono, { fontSize: 28, lineHeight: 34, color: '#B8633A', marginTop: 4 }]}>{abv.toFixed(1)}%</Text>
-        </View>
-
-        {/* Vessel */}
-        <View style={{ alignItems: 'center' }}>
-          <View style={{ width: 28, height: 8, borderRadius: 4, backgroundColor: '#EBE3D2', marginBottom: 2 }} />
-          <View style={{ width: 20, height: 12, backgroundColor: '#FAF6EE', borderLeftWidth: 2, borderRightWidth: 2, borderTopWidth: 0, borderBottomWidth: 0, borderColor: '#D5C4B0' }} />
-          <View style={{ width: 100, height: 160, borderRadius: 16, borderWidth: 2, borderColor: '#D5C4B0', backgroundColor: '#FAF6EE', overflow: 'hidden', position: 'relative' }}>
-            {/* Measurement lines */}
-            <View style={{ position: 'absolute', right: 8, top: 20, width: 12, height: 1, backgroundColor: '#D5C4B0' }} />
-            <View style={{ position: 'absolute', right: 8, top: 50, width: 12, height: 1, backgroundColor: '#D5C4B0' }} />
-            <View style={{ position: 'absolute', right: 8, top: 80, width: 12, height: 1, backgroundColor: '#D5C4B0' }} />
-            <View style={{ position: 'absolute', right: 8, top: 110, width: 12, height: 1, backgroundColor: '#D5C4B0' }} />
-
-            {/* Liquid */}
-            <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: fillHeight, backgroundColor: srmColor, opacity: 0.85 }} />
-
-            {/* Krausen */}
-            {hasKrausen && (
-              <View style={{ position: 'absolute', top: '22%', left: 0, right: 0, height: 10, backgroundColor: '#FFFFFF', opacity: 0.7, borderRadius: 5 }} />
-            )}
-
-            {/* Bubbles */}
-            {isBubbling && (
-              <>
-                <View style={{ position: 'absolute', width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.5)', top: '55%', left: '25%' }} />
-                <View style={{ position: 'absolute', width: 4, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.4)', top: '45%', left: '55%' }} />
-                <View style={{ position: 'absolute', width: 5, height: 5, borderRadius: 2.5, backgroundColor: 'rgba(255,255,255,0.5)', top: '65%', left: '70%' }} />
-              </>
-            )}
-          </View>
-        </View>
-
-        {/* Profile */}
-        <View style={{ alignItems: 'center' }}>
-          <Text style={[F.body, { fontSize: 10, color: '#6E6E6E', textTransform: 'uppercase', letterSpacing: 1.5 }]}>Profile</Text>
-          <Text style={[F.displayItalic, { fontSize: 14, lineHeight: 18, color: '#1A1A1A', marginTop: 4, textAlign: 'center', maxWidth: 80 }]}>
-            {profile}
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
-}
 
 function BrewLogItem({ icon, title, subtitle, timeAgo }: { icon: string; title: string; subtitle: string; timeAgo: string }) {
   return (
@@ -214,10 +189,46 @@ export default function BatchDetailScreen() {
   const updateBatch = useAppStore((s) => s.updateBatch);
   const recipe = batch?.recipe_snapshot;
 
+  const gravityMeasurements = useMemo(() => {
+    if (!batch) return [];
+    return batch.measurements
+      .filter((m) => m.type === 'gravity')
+      .map((m) => ({
+        hours_since_pitch: (new Date(m.recorded_at).getTime() - new Date(batch.started_at).getTime()) / 3600000,
+        gravity_sg: m.value,
+      }))
+      .filter((m) => m.hours_since_pitch >= 0)
+      .sort((a, b) => a.hours_since_pitch - b.hours_since_pitch);
+  }, [batch?.measurements, batch?.started_at]);
+
+  const isRefit = gravityMeasurements.length >= 2;
+
   const curve = useMemo(() => {
     if (!recipe) return [];
+
+    if (isRefit) {
+      const initial = fermentationParamsForRecipe(recipe);
+      const refined = refitCurve(gravityMeasurements, initial);
+      // Build a refit curve using the refined params
+      const refitPoints: { hours_since_pitch: number; predicted_gravity_sg: number; predicted_abv_pct: number; predicted_temperature_c: number; predicted_status: import('../../../src/lib/beerjson/types').BatchStatus; step_name: string }[] = [];
+      const totalHrs = initial.total_hrs * 1.1;
+      for (let t = 0; t <= totalHrs; t += 4) {
+        const sg = predictGravityAt(t, refined);
+        const abv = predictABVAt(t, refined);
+        refitPoints.push({
+          hours_since_pitch: t,
+          predicted_gravity_sg: sg,
+          predicted_abv_pct: abv,
+          predicted_temperature_c: recipe.process?.fermentation?.steps?.[0]?.temperature_c ?? 20,
+          predicted_status: statusFromProgress(t, refined.lag_hrs, refined.total_hrs),
+          step_name: 'Refit',
+        });
+      }
+      return refitPoints;
+    }
+
     return buildPredictedCurve(recipe, 4);
-  }, [recipe]);
+  }, [recipe, gravityMeasurements, isRefit]);
 
   if (!batch || !recipe) {
     return (
@@ -227,8 +238,19 @@ export default function BatchDetailScreen() {
     );
   }
 
+  const [showCelebration, setShowCelebration] = useState(false);
+  const celebratedRef = useRef(false);
+
+  useEffect(() => {
+    if (batch.status === 'ready' && !celebratedRef.current) {
+      celebratedRef.current = true;
+      setShowCelebration(true);
+    }
+  }, [batch.status]);
+
   const status = statusBadge(batch.status);
   const srmColor = srmToHex(recipe.estimated_srm);
+  const unitSystem = useAppStore((s) => s.unitSystem);
 
   const hoursSincePitch = (Date.now() - new Date(batch.started_at).getTime()) / 3600000;
   const currentHour = Math.max(0, Math.min(hoursSincePitch, curve.length > 0 ? curve[curve.length - 1].hours_since_pitch : 336));
@@ -236,6 +258,7 @@ export default function BatchDetailScreen() {
   const currentGravity = currentPoint?.predicted_gravity_sg ?? recipe.estimated_og;
   const currentAbv = currentPoint?.predicted_abv_pct ?? 0;
   const currentTemp = currentPoint?.predicted_temperature_c ?? recipe.process.fermentation.steps[0]?.temperature_c ?? 20;
+  const currentStepName = currentPoint?.step_name ?? 'Primary';
 
   function pitchYeast() {
     const newCurve = buildPredictedCurve(recipe, 1);
@@ -247,11 +270,67 @@ export default function BatchDetailScreen() {
     });
   }
 
-  const brewLog = [
-    { icon: '⊘', title: 'Added dry hops', subtitle: '100g Citra, 50g Simcoe', timeAgo: '2 days ago' },
-    { icon: '⚡', title: 'Fermentation started', subtitle: 'Vigorous airlock activity', timeAgo: '5 days ago' },
-    { icon: '💧', title: 'Wort chilled & Pitched', subtitle: `${recipe.cultures[0]?.culture.name ?? 'US-05'} Yeast`, timeAgo: '7 days ago' },
-  ];
+  // Build brew log from real measurements + batch creation
+  const buildBrewLog = () => {
+    const items: { icon: string; title: string; subtitle: string; timeAgo: string }[] = [];
+
+    // Sort measurements by date, newest first
+    const sortedMeasurements = [...batch.measurements].sort(
+      (a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime(),
+    );
+
+    for (const m of sortedMeasurements) {
+      const hoursAgo = (Date.now() - new Date(m.recorded_at).getTime()) / 3600000;
+      const timeAgo = hoursAgo < 24 ? `${Math.round(hoursAgo)}h ago` : `${Math.round(hoursAgo / 24)}d ago`;
+
+      if (m.type === 'gravity') {
+        items.push({
+          icon: '◎',
+          title: `Gravity reading: ${m.value.toFixed(3)}`,
+          subtitle: m.note || 'Manual reading',
+          timeAgo,
+        });
+      } else if (m.type === 'temperature') {
+        items.push({
+          icon: '⌂',
+          title: `Temp check: ${formatTemp(m.value, unitSystem)}`,
+          subtitle: m.note || 'Manual reading',
+          timeAgo,
+        });
+      } else if (m.type === 'ph') {
+        items.push({
+          icon: 'pH',
+          title: `pH reading: ${m.value.toFixed(2)}`,
+          subtitle: m.note || 'Manual reading',
+          timeAgo,
+        });
+      } else if (m.type === 'volume') {
+        items.push({
+          icon: '≈',
+          title: `Volume: ${m.value.toFixed(1)} L`,
+          subtitle: m.note || 'Manual reading',
+          timeAgo,
+        });
+      }
+    }
+
+    // Add batch creation event
+    const batchAgeHours = (Date.now() - new Date(batch.created_at).getTime()) / 3600000;
+    const batchAge = batchAgeHours < 24 ? `${Math.round(batchAgeHours)}h ago` : `${Math.round(batchAgeHours / 24)}d ago`;
+    items.push({
+      icon: '🌾',
+      title: 'Batch created',
+      subtitle: `${recipe.name} — ${formatVolume(recipe.batch_size_l, unitSystem)}`,
+      timeAgo: batchAge,
+    });
+
+    return items;
+  };
+
+  const brewLog = buildBrewLog();
+
+  const costInfo = calculateBatchCost(batch, useAppStore.getState().inventory);
+  const hasCost = costInfo.totalCost > 0;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#F5F0E6' }} edges={['top']}>
@@ -282,12 +361,38 @@ export default function BatchDetailScreen() {
           </View>
         </View>
 
-        {/* Fermenter Vessel */}
-        <FermenterVessel srmColor={srmColor} status={batch.status} abv={currentAbv} profile={recipe.style?.name ?? 'Custom'} />
+        {/* Fermenter Canvas */}
+        <FermenterCanvas
+          srmColor={srmColor}
+          status={batch.status}
+          abv={currentAbv}
+          gravity={currentGravity}
+          tempC={currentTemp}
+          stepName={currentStepName}
+          width={140}
+          height={220}
+        />
+
+        {/* Step indicator */}
+        <View style={{ alignItems: 'center', marginVertical: 8 }}>
+          <Text style={[F.body, { fontSize: 11, color: '#6E6E6E', textTransform: 'uppercase', letterSpacing: 1.5 }]}>
+            Current Stage
+          </Text>
+          <Text style={[F.display, { fontSize: 18, lineHeight: 24, color: '#1A1A1A', marginTop: 4 }]}>
+            {currentStepName}
+          </Text>
+        </View>
 
         {/* Quote */}
         <Text style={[F.displayItalic, { fontSize: 15, lineHeight: 22, color: '#6E6E6E', textAlign: 'center', marginVertical: 24 }]}>
-          "She's bubbling away nicely. Keep an eye on that temp."
+          {batch.status === 'lag-phase' && "Quiet for now. Yeast is waking up."}
+          {batch.status === 'active-fermentation' && "She's bubbling away nicely. Keep an eye on that temp."}
+          {batch.status === 'attenuating' && "Gravity's dropping. Nearly there."}
+          {batch.status === 'conditioning' && "Let it settle. Patience now."}
+          {batch.status === 'cold-crash' && "Clearing up. Almost ready."}
+          {batch.status === 'ready' && "Done. Time to package."}
+          {batch.status === 'planned' && "Ready when you are."}
+          {batch.status === 'brew-day' && "Brew day. Let's get it done."}
         </Text>
 
         {/* Current Gravity */}
@@ -304,7 +409,11 @@ export default function BatchDetailScreen() {
                 Target: {recipe.estimated_fg.toFixed(3)}
               </Text>
             </View>
-            <TouchableOpacity style={{ backgroundColor: '#B8633A', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10 }} activeOpacity={0.8}>
+            <TouchableOpacity
+              onPress={() => { hapticImpact('medium'); router.push(`/batch/${batch.id}/log`); }}
+              style={{ backgroundColor: '#B8633A', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10 }}
+              activeOpacity={0.8}
+            >
               <Text style={[F.bodySemiBold, { fontSize: 15, color: '#F5F0E6' }]}>Log a reading</Text>
             </TouchableOpacity>
           </View>
@@ -318,12 +427,76 @@ export default function BatchDetailScreen() {
           </View>
           <View style={[styles.card, { flex: 1, alignItems: 'center' }]}>
             <Text style={[F.body, { fontSize: 11, color: '#6E6E6E', textTransform: 'uppercase', letterSpacing: 1.5 }]}>Temp</Text>
-            <Text style={[F.mono, { fontSize: 36, lineHeight: 40, color: '#1A1A1A', marginTop: 8 }]}>{currentTemp.toFixed(1)}°C</Text>
+            <Text style={[F.mono, { fontSize: 36, lineHeight: 40, color: '#1A1A1A', marginTop: 8 }]}>{formatTemp(currentTemp, unitSystem)}</Text>
           </View>
         </View>
 
+        {/* Cost */}
+        <View style={[styles.card, { marginBottom: 16 }]}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <PoundSterling size={18} color="#5C6A54" strokeWidth={1.5} />
+              <Text style={[F.bodySemiBold, { fontSize: 15, color: '#1A1A1A' }]}>Batch Cost</Text>
+            </View>
+            {hasCost ? (
+              <Text style={[F.displayMedium, { fontSize: 22, color: '#5C6A54' }]}>
+                £{costInfo.totalCost.toFixed(2)}
+              </Text>
+            ) : (
+              <TouchableOpacity
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#EBE3D2', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10 }}
+              >
+                <Calculator size={14} color="#6E6E6E" strokeWidth={2} />
+                <Text style={[F.bodySemiBold, { fontSize: 13, color: '#6E6E6E' }]}>Add prices to pantry</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          {hasCost && (
+            <Text style={[F.mono, { fontSize: 12, color: '#6E6E6E', marginTop: 6 }]}>
+              £{costPerPint(costInfo.totalCost, recipe.batch_size_l).toFixed(2)} per pint · {costInfo.breakdown.length} ingredient{costInfo.breakdown.length > 1 ? 's' : ''} priced
+            </Text>
+          )}
+        </View>
+
+        {/* Water Chemistry */}
+        <View style={[styles.card, { marginTop: 16 }]}>
+          <Text style={[F.body, { fontSize: 11, color: '#6E6E6E', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 12 }]}>
+            Water Profile
+          </Text>
+          {(() => {
+            const wc = getRecipeWaterChemistry(recipe);
+            return (
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <View style={{ flex: 1, backgroundColor: '#F5F0E6', borderRadius: 10, padding: 12, borderWidth: 1, borderColor: '#EBE3D2' }}>
+                  <Text style={[F.mono, { fontSize: 14, color: '#1A1A1A' }]}>{wc.sulfate_chloride_ratio.toFixed(1)}</Text>
+                  <Text style={[F.body, { fontSize: 10, color: '#6E6E6E', textTransform: 'uppercase', letterSpacing: 1, marginTop: 4 }]}>SO₄:Cl⁻</Text>
+                </View>
+                <View style={{ flex: 1, backgroundColor: '#F5F0E6', borderRadius: 10, padding: 12, borderWidth: 1, borderColor: '#EBE3D2' }}>
+                  <Text style={[F.mono, { fontSize: 14, color: '#1A1A1A' }]}>{wc.estimated_mash_ph}</Text>
+                  <Text style={[F.body, { fontSize: 10, color: '#6E6E6E', textTransform: 'uppercase', letterSpacing: 1, marginTop: 4 }]}>Est. pH</Text>
+                </View>
+                <View style={{ flex: 1, backgroundColor: '#F5F0E6', borderRadius: 10, padding: 12, borderWidth: 1, borderColor: '#EBE3D2' }}>
+                  <Text style={[F.bodySemiBold, { fontSize: 11, color: '#1A1A1A', textTransform: 'capitalize' }]}>{wc.flavour_character.replace('-', ' ')}</Text>
+                  <Text style={[F.body, { fontSize: 10, color: '#6E6E6E', textTransform: 'uppercase', letterSpacing: 1, marginTop: 4 }]}>Character</Text>
+                </View>
+              </View>
+            );
+          })()}
+        </View>
+
         {/* Gravity curve */}
-        <GravityChart curve={curve} og={recipe.estimated_og} fg={recipe.estimated_fg} currentHour={currentHour} />
+        <GravityChart
+          curve={curve}
+          og={recipe.estimated_og}
+          fg={recipe.estimated_fg}
+          currentHour={currentHour}
+          measurements={batch.measurements
+            .filter((m) => m.type === 'gravity')
+            .map((m) => ({
+              hours_since_pitch: Math.max(0, (new Date(m.recorded_at).getTime() - new Date(batch.started_at).getTime()) / 3600000),
+              gravity_sg: m.value,
+            }))}
+        />
 
         {/* Brew Log */}
         <View style={{ marginTop: 24, marginBottom: 8 }}>
@@ -340,10 +513,13 @@ export default function BatchDetailScreen() {
           </Text>
         </TouchableOpacity>
 
+        {/* Celebration */}
+        <CelebrationBurst visible={showCelebration} onComplete={() => setShowCelebration(false)} />
+
         {/* Actions */}
         {batch.status === 'planned' && (
           <TouchableOpacity
-            onPress={() => router.push(`/batch/${batch.id}/brew-day`)}
+            onPress={() => { hapticImpact('heavy'); router.push(`/batch/${batch.id}/brew-day`); }}
             style={{ backgroundColor: '#B8633A', height: 56, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginBottom: 32 }}
             activeOpacity={0.8}
           >
@@ -352,7 +528,7 @@ export default function BatchDetailScreen() {
         )}
         {batch.status === 'brew-day' && (
           <TouchableOpacity
-            onPress={pitchYeast}
+            onPress={() => { hapticImpact('success'); pitchYeast(); }}
             style={{ backgroundColor: '#B8633A', height: 56, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginBottom: 32 }}
             activeOpacity={0.8}
           >

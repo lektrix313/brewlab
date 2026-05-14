@@ -41,6 +41,12 @@ import tplIrishStout from '../data/templates/tpl-irish-stout.json';
 import tplWestCoastIpa from '../data/templates/tpl-west-coast-ipa-classic.json';
 import tplNeipa from '../data/templates/tpl-neipa-hazy.json';
 import tplGermanHelles from '../data/templates/tpl-german-helles.json';
+import tplCzechPilsner from '../data/templates/tpl-czech-pilsner.json';
+import tplHefeweizen from '../data/templates/tpl-hefeweizen.json';
+import tplSaison from '../data/templates/tpl-saison.json';
+import tplKolsch from '../data/templates/tpl-kolsch.json';
+import tplAmericanAmber from '../data/templates/tpl-american-amber.json';
+import tplBelgianDubbel from '../data/templates/tpl-belgian-dubbel.json';
 
 const templateMap: Record<string, StyleTemplate> = {
   'tpl-american-pale-ale': tplAmericanPaleAle as StyleTemplate,
@@ -49,6 +55,12 @@ const templateMap: Record<string, StyleTemplate> = {
   'tpl-west-coast-ipa-classic': tplWestCoastIpa as StyleTemplate,
   'tpl-neipa-hazy': tplNeipa as StyleTemplate,
   'tpl-german-helles': tplGermanHelles as StyleTemplate,
+  'tpl-czech-pilsner': tplCzechPilsner as StyleTemplate,
+  'tpl-hefeweizen': tplHefeweizen as StyleTemplate,
+  'tpl-saison': tplSaison as StyleTemplate,
+  'tpl-kolsch': tplKolsch as StyleTemplate,
+  'tpl-american-amber': tplAmericanAmber as StyleTemplate,
+  'tpl-belgian-dubbel': tplBelgianDubbel as StyleTemplate,
 };
 
 function loadTemplates(): StyleTemplate[] {

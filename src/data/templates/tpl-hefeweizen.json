@@ -1,0 +1,100 @@
+{
+  "id": "tpl-hefeweizen",
+  "name": "German Hefeweizen",
+  "description": "The classic Bavarian wheat beer. Cloudy, effervescent, and bursting with banana and clove. Fermentation temperature is everything — this is the best style to learn how yeast drives flavour.",
+  "style_id": "10A",
+  "difficulty": "beginner",
+  "estimated_brew_to_ready_days": 14,
+  "base_batch_size_l": 20,
+  "fermentables": [
+    { "fermentable_id": "wheat-malt-pale", "amount_kg": 2.5, "use": "mash" },
+    { "fermentable_id": "pilsner-weyermann", "amount_kg": 2.5, "use": "mash" }
+  ],
+  "hops": [
+    { "hop_id": "hallertau-mittelfruh", "amount_g": 20, "use": "boil", "time_min": 60, "form": "pellet" },
+    { "hop_id": "hallertau-mittelfruh", "amount_g": 15, "use": "boil", "time_min": 15, "form": "pellet" }
+  ],
+  "cultures": [
+    { "culture_id": "wb-06", "amount_g_or_ml": 11.5 }
+  ],
+  "process": {
+    "water_profile": {
+      "name": "Munich (moderate)",
+      "calcium_ppm": 80, "magnesium_ppm": 10, "sodium_ppm": 10,
+      "sulfate_ppm": 10, "chloride_ppm": 60, "bicarbonate_ppm": 100
+    },
+    "mash": {
+      "steps": [
+        { "name": "Sacc rest", "temperature_c": 65, "duration_min": 60, "type": "infusion", "rest_purpose": "beta-amylase" },
+        { "name": "Mash out", "temperature_c": 76, "duration_min": 10, "type": "temperature", "rest_purpose": "mash-out" }
+      ],
+      "water_grain_ratio_l_per_kg": 3.0,
+      "sparge": "batch",
+      "target_ph": 5.4
+    },
+    "boil": {
+      "duration_min": 60,
+      "vigour": "rolling"
+    },
+    "fermentation": {
+      "pitch_temp_c": 18,
+      "pitch_rate_million_cells_per_ml_per_plato": 0.75,
+      "oxygenation": "shake",
+      "steps": [
+        {
+          "name": "Primary",
+          "type": "primary",
+          "start_condition": { "type": "time-after-pitch", "value": 0 },
+          "temperature_c": 20,
+          "end_condition": { "type": "duration-days", "value": 5 }
+        },
+        {
+          "name": "Conditioning",
+          "type": "secondary",
+          "start_condition": { "type": "previous-step-end", "value": 0 },
+          "temperature_c": 20,
+          "end_condition": { "type": "duration-days", "value": 5 }
+        },
+        {
+          "name": "Cold crash",
+          "type": "crash",
+          "start_condition": { "type": "previous-step-end", "value": 0 },
+          "temperature_c": 2,
+          "ramp_rate_c_per_day": -3,
+          "end_condition": { "type": "duration-days", "value": 2 }
+        }
+      ]
+    },
+    "packaging": {
+      "method": "bottle",
+      "carbonation_volumes_co2": 3.5,
+      "bottle_priming": {
+        "sugar_type": "corn-sugar",
+        "sugar_g_per_l": 7.0,
+        "conditioning_temp_c": 20,
+        "conditioning_days": 14
+      },
+      "serving_temp_c": 6
+    }
+  },
+  "expected_profile": {
+    "overall_summary": "Cloudy, effervescent, and aromatic. Banana and clove in equal measure with a soft wheat body and a dry, refreshing finish.",
+    "dominant_descriptors": ["banana", "clove", "wheat", "bready", "effervescent"],
+    "body": "medium-light",
+    "bitterness_perception": "low",
+    "sweetness": "dry",
+    "finish": "Dry and crisp with lingering phenolic spice"
+  },
+  "tips": [
+    "Fermentation temperature controls the banana:clove ratio. 18°C = more clove. 22°C = more banana.",
+    "Under-pitching slightly increases ester production. Don't overdo it though.",
+    "Hefeweizen is supposed to be hazy. Don't filter or fine it.",
+    "Bottle condition high — 3.5+ vols CO2 gives the proper spritz."
+  ],
+  "common_mistakes": [
+    "Fermenting too cold (kills the esters, ends up bland)",
+    "Over-pitching (reduces ester character)",
+    "Filtering (removes the haze that defines the style)",
+    "Under-carbonating (needs high spritz to feel right)"
+  ]
+}

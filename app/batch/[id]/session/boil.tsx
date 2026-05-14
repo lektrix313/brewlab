@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAppStore } from '../../../../src/stores/appStore';
 import { useEffect, useRef, useState } from 'react';
 import { X, Bell, Check, Clock, ArrowRight } from 'lucide-react-native';
+import { hapticImpact } from '../../../../src/lib/haptics';
 
 const F = {
   display: { fontFamily: 'Newsreader_600SemiBold' },
@@ -44,24 +45,48 @@ export default function BoilScreen() {
     }
   }, [session]);
 
+  const alertedHopsRef = useRef<Set<string>>(new Set());
+
   useEffect(() => {
     if (isPaused || timeLeft <= 0) {
       if (timerRef.current) clearInterval(timerRef.current);
+      if (timeLeft === 0) {
+        hapticImpact('success');
+      }
       return;
     }
     timerRef.current = setInterval(() => {
       setTimeLeft((t) => {
-        if (t <= 1) {
+        const newT = t - 1;
+        if (newT <= 0) {
           clearInterval(timerRef.current!);
+          hapticImpact('success');
           return 0;
         }
-        return t - 1;
+        // Check for hop additions due now (within 5-second window)
+        const elapsedSec = boilMin * 60 - newT;
+        boilHops.forEach((h) => {
+          const hopKey = `${h.hop_id}-${h.time_min}`;
+          const targetElapsed = (boilMin - h.time_min) * 60;
+          if (
+            elapsedSec >= targetElapsed &&
+            elapsedSec < targetElapsed + 5 &&
+            !session.hop_additions_done.includes(hopKey) &&
+            !alertedHopsRef.current.has(hopKey)
+          ) {
+            alertedHopsRef.current.add(hopKey);
+            hapticImpact('heavy');
+            // Could auto-navigate to hop alert here:
+            // router.push(`/batch/${id}/session/hop-alert?hopId=${h.hop_id}&timeMin=${h.time_min}&amountG=${h.amount_g}&hopName=${encodeURIComponent(h.hop.name)}`);
+          }
+        });
+        return newT;
       });
     }, 1000);
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isPaused, timeLeft]);
+  }, [isPaused, timeLeft, boilMin, boilHops, session.hop_additions_done]);
 
   if (!batch || !recipe || !session) {
     return (

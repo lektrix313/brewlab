@@ -1,0 +1,93 @@
+{
+  "id": "tpl-kolsch",
+  "name": "Kölsch",
+  "description": "The delicate, crisp hybrid from Cologne. Ferments like an ale, conditions like a lager. Subtle fruit, soft malt, and a clean finish that disappears from the glass faster than you'd think.",
+  "style_id": "5B",
+  "difficulty": "intermediate",
+  "estimated_brew_to_ready_days": 28,
+  "base_batch_size_l": 20,
+  "fermentables": [
+    { "fermentable_id": "pilsner-weyermann", "amount_kg": 4.0, "use": "mash" },
+    { "fermentable_id": "vienna-weyermann", "amount_kg": 0.3, "use": "mash" }
+  ],
+  "hops": [
+    { "hop_id": "tettnang", "amount_g": 25, "use": "boil", "time_min": 60, "form": "pellet" },
+    { "hop_id": "hallertau-mittelfruh", "amount_g": 20, "use": "boil", "time_min": 15, "form": "pellet" }
+  ],
+  "cultures": [
+    { "culture_id": "wlp029", "amount_g_or_ml": 11.5 }
+  ],
+  "process": {
+    "water_profile": {
+      "name": "Kölsch (moderate)",
+      "calcium_ppm": 50, "magnesium_ppm": 5, "sodium_ppm": 10,
+      "sulfate_ppm": 60, "chloride_ppm": 50, "bicarbonate_ppm": 30
+    },
+    "mash": {
+      "steps": [
+        { "name": "Sacc rest", "temperature_c": 65, "duration_min": 60, "type": "infusion", "rest_purpose": "beta-amylase" },
+        { "name": "Mash out", "temperature_c": 76, "duration_min": 10, "type": "temperature", "rest_purpose": "mash-out" }
+      ],
+      "water_grain_ratio_l_per_kg": 3.0,
+      "sparge": "batch",
+      "target_ph": 5.3
+    },
+    "boil": {
+      "duration_min": 60,
+      "vigour": "rolling"
+    },
+    "fermentation": {
+      "pitch_temp_c": 16,
+      "pitch_rate_million_cells_per_ml_per_plato": 0.75,
+      "oxygenation": "shake",
+      "steps": [
+        {
+          "name": "Primary",
+          "type": "primary",
+          "start_condition": { "type": "time-after-pitch", "value": 0 },
+          "temperature_c": 16,
+          "end_condition": { "type": "duration-days", "value": 10 }
+        },
+        {
+          "name": "Lager conditioning",
+          "type": "lagering",
+          "start_condition": { "type": "previous-step-end", "value": 0 },
+          "temperature_c": 2,
+          "ramp_rate_c_per_day": -2,
+          "end_condition": { "type": "duration-days", "value": 14 }
+        }
+      ]
+    },
+    "packaging": {
+      "method": "keg",
+      "carbonation_volumes_co2": 2.5,
+      "force_carb": {
+        "method": "set-and-forget",
+        "pressure_psi": 11,
+        "temperature_c": 2,
+        "duration_hours": 168
+      },
+      "serving_temp_c": 6
+    }
+  },
+  "expected_profile": {
+    "overall_summary": "Crisp, delicate, and subtly fruity. Soft Pilsner malt with a whisper of noble hops and a clean, lager-like finish. The perfect bridge between ale and lager.",
+    "dominant_descriptors": ["crisp", "soft malt", "subtle fruit", "noble herbal", "clean"],
+    "body": "light",
+    "bitterness_perception": "medium-low",
+    "sweetness": "dry",
+    "finish": "Clean and crisp with a faint hop bitterness and soft malt whisper"
+  },
+  "tips": [
+    "Ferment cool — 16°C is the sweet spot. Warmer gives too much fruit.",
+    "Lager conditioning is what separates Kölsch from a pale ale. Don't skip the cold phase.",
+    "Keep the hop character subtle. This is a malt-and-yeast showcase, not a hop bomb.",
+    "Kölsch yeast flocculates poorly. It will be slightly hazy — that's fine."
+  ],
+  "common_mistakes": [
+    "Fermenting too warm (ends up tasting like a fruity ale)",
+    "Skipping the cold conditioning (lacks the crisp, clean finish)",
+    "Over-hopping (overwhelms the delicate malt character)",
+    "Using ale yeast (WLP029 or Köln yeast is essential)"
+  ]
+}

@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAppStore } from '../../../../src/stores/appStore';
 import { useEffect, useRef, useState } from 'react';
 import { X, Thermometer, ArrowRight } from 'lucide-react-native';
+import { hapticImpact } from '../../../../src/lib/haptics';
 
 const F = {
   display: { fontFamily: 'Newsreader_600SemiBold' },
@@ -48,12 +49,16 @@ export default function MashScreen() {
   useEffect(() => {
     if (isPaused || timeLeft <= 0) {
       if (timerRef.current) clearInterval(timerRef.current);
+      if (timeLeft === 0) {
+        hapticImpact('success');
+      }
       return;
     }
     timerRef.current = setInterval(() => {
       setTimeLeft((t) => {
         if (t <= 1) {
           clearInterval(timerRef.current!);
+          hapticImpact('success');
           return 0;
         }
         return t - 1;

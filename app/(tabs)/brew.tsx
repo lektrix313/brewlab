@@ -4,7 +4,7 @@ import { useAppStore } from '../../src/stores/appStore';
 import { useRouter } from 'expo-router';
 import { useFadeIn } from '../../src/lib/animations';
 import { Animated } from 'react-native';
-import { FlaskConical, ArrowRight, Clock } from 'lucide-react-native';
+import { FlaskConical, ArrowRight, Clock, Scale } from 'lucide-react-native';
 
 const F = {
   display: { fontFamily: 'Newsreader_600SemiBold' },
@@ -108,6 +108,18 @@ export default function BrewScreen() {
               </TouchableOpacity>
             ))}
           </View>
+        )}
+
+        {/* Compare CTA */}
+        {batches.length >= 2 && (
+          <TouchableOpacity
+            onPress={() => router.push('/batch/compare')}
+            style={[styles.card, { marginTop: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }]}
+            activeOpacity={0.8}
+          >
+            <Scale size={18} color="#B8633A" strokeWidth={1.5} />
+            <Text style={[F.bodySemiBold, { fontSize: 15, color: '#B8633A' }]}>Compare Batches</Text>
+          </TouchableOpacity>
         )}
 
         {activeBrews.length === 0 && plannedBrews.length === 0 && (

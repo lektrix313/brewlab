@@ -1,0 +1,102 @@
+{
+  "id": "tpl-belgian-dubbel",
+  "name": "Belgian Dubbel",
+  "description": "Rich, complex, and dangerously drinkable. Dark candi sugar creates dried-fruit depth while a Trappist yeast weaves plum, raisin, and spice. The perfect introduction to Belgian brewing.",
+  "style_id": "26B",
+  "difficulty": "advanced",
+  "estimated_brew_to_ready_days": 35,
+  "base_batch_size_l": 20,
+  "fermentables": [
+    { "fermentable_id": "pilsner-weyermann", "amount_kg": 3.2, "use": "mash" },
+    { "fermentable_id": "munich-light-weyermann", "amount_kg": 0.5, "use": "mash" },
+    { "fermentable_id": "caramunich-3", "amount_kg": 0.3, "use": "mash" },
+    { "fermentable_id": "special-b-malt", "amount_kg": 0.15, "use": "mash" }
+  ],
+  "hops": [
+    { "hop_id": "styrian-goldings", "amount_g": 25, "use": "boil", "time_min": 60, "form": "pellet" },
+    { "hop_id": "saaz", "amount_g": 15, "use": "boil", "time_min": 15, "form": "pellet" }
+  ],
+  "cultures": [
+    { "culture_id": "wlp500", "amount_g_or_ml": 11.5 }
+  ],
+  "process": {
+    "water_profile": {
+      "name": "Belgian (moderate soft)",
+      "calcium_ppm": 50, "magnesium_ppm": 8, "sodium_ppm": 20,
+      "sulfate_ppm": 40, "chloride_ppm": 60, "bicarbonate_ppm": 60
+    },
+    "mash": {
+      "steps": [
+        { "name": "Sacc rest", "temperature_c": 65, "duration_min": 60, "type": "infusion", "rest_purpose": "beta-amylase" },
+        { "name": "Mash out", "temperature_c": 76, "duration_min": 10, "type": "temperature", "rest_purpose": "mash-out" }
+      ],
+      "water_grain_ratio_l_per_kg": 3.0,
+      "sparge": "batch",
+      "target_ph": 5.3
+    },
+    "boil": {
+      "duration_min": 60,
+      "vigour": "rolling"
+    },
+    "fermentation": {
+      "pitch_temp_c": 18,
+      "pitch_rate_million_cells_per_ml_per_plato": 0.75,
+      "oxygenation": "pure-o2",
+      "steps": [
+        {
+          "name": "Primary",
+          "type": "primary",
+          "start_condition": { "type": "time-after-pitch", "value": 0 },
+          "temperature_c": 20,
+          "end_condition": { "type": "duration-days", "value": 7 }
+        },
+        {
+          "name": "Warm conditioning",
+          "type": "secondary",
+          "start_condition": { "type": "previous-step-end", "value": 0 },
+          "temperature_c": 22,
+          "end_condition": { "type": "duration-days", "value": 10 }
+        },
+        {
+          "name": "Cold crash",
+          "type": "crash",
+          "start_condition": { "type": "previous-step-end", "value": 0 },
+          "temperature_c": 2,
+          "ramp_rate_c_per_day": -2,
+          "end_condition": { "type": "duration-days", "value": 5 }
+        }
+      ]
+    },
+    "packaging": {
+      "method": "bottle",
+      "carbonation_volumes_co2": 2.8,
+      "bottle_priming": {
+        "sugar_type": "corn-sugar",
+        "sugar_g_per_l": 5.5,
+        "conditioning_temp_c": 22,
+        "conditioning_days": 21
+      },
+      "serving_temp_c": 10
+    }
+  },
+  "expected_profile": {
+    "overall_summary": "Rich and complex with layers of dried fruit, dark caramel, and subtle spice. Medium-full body with a warming finish that hides its strength alarmingly well.",
+    "dominant_descriptors": ["dried fruit", "plum", "raisin", "caramel", "spice"],
+    "body": "medium-full",
+    "bitterness_perception": "medium-low",
+    "sweetness": "balanced",
+    "finish": "Warming and dry with lingering dark fruit and a hint of clove"
+  },
+  "tips": [
+    "Add dark candi sugar or syrup in the boil for authentic Belgian character. It boosts ABV and adds those complex dried-fruit notes.",
+    "Ferment warm — 20-22°C brings out the yeast esters that define the style.",
+    "WLP500 is Chimay yeast. WLP530 or WLP540 are excellent alternatives for different Trappist character.",
+    "Age in bottle for at least 3 weeks. Dubbel improves dramatically with time."
+  ],
+  "common_mistakes": [
+    "Fermenting too cold (suppresses the yeast character that makes a Dubbel)",
+    "Skipping the candi sugar (ends up tasting like a brown ale, not a Belgian)",
+    "Over-hopping (bitterness should be supportive, not dominant)",
+    "Bottling too early (needs time for the yeast to clean up and condition)"
+  ]
+}

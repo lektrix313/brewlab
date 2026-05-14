@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAppStore } from '../../../../src/stores/appStore';
 import { useState } from 'react';
 import { X } from 'lucide-react-native';
+import { formatTemp } from '../../../../src/lib/units';
 
 const F = {
   display: { fontFamily: 'Newsreader_600SemiBold' },
@@ -43,6 +44,7 @@ export default function PitchScreen() {
   const predictedOG = recipe.estimated_og.toFixed(3);
   const targetVol = recipe.batch_size_l;
   const pitchTemp = recipe.process.fermentation.pitch_temp_c;
+  const unitSystem = useAppStore((s) => s.unitSystem);
 
   function complete() {
     updateSession({ ...session, phase: 'complete' });
@@ -155,7 +157,7 @@ export default function PitchScreen() {
             </TouchableOpacity>
           </View>
           <Text style={[F.body, { fontSize: 13, color: '#6E6E6E', marginBottom: 8 }]}>
-            Recipe target: {pitchTemp}°C
+            Recipe target: {formatTemp(pitchTemp, unitSystem)}
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <TextInput
@@ -166,7 +168,7 @@ export default function PitchScreen() {
               keyboardType="decimal-pad"
               style={[F.mono, { flex: 1, fontSize: 18, color: '#1A1A1A', borderWidth: 1.5, borderColor: '#EBE3D2', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: '#FAF6EE' }]}
             />
-            <Text style={[F.body, { fontSize: 15, color: '#6E6E6E', marginLeft: 8 }]}>°C</Text>
+            <Text style={[F.body, { fontSize: 15, color: '#6E6E6E', marginLeft: 8 }]}>{unitSystem === 'metric' ? '°C' : '°F'}</Text>
           </View>
         </View>
 

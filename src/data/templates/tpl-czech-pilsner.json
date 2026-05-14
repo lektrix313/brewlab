@@ -1,0 +1,109 @@
+{
+  "id": "tpl-czech-pilsner",
+  "name": "Czech Pilsner",
+  "description": "The original Pilsner. Crisp, bitter, and floral with a firm Saaz backbone. Slightly more challenging than a German lager due to the traditional triple-decoction mash, but a single infusion works for beginners.",
+  "style_id": "3B",
+  "difficulty": "intermediate",
+  "estimated_brew_to_ready_days": 35,
+  "base_batch_size_l": 20,
+  "fermentables": [
+    { "fermentable_id": "pilsner-weyermann", "amount_kg": 4.2, "use": "mash" },
+    { "fermentable_id": "munich-light-weyermann", "amount_kg": 0.2, "use": "mash" }
+  ],
+  "hops": [
+    { "hop_id": "saaz", "amount_g": 35, "use": "boil", "time_min": 60, "form": "pellet" },
+    { "hop_id": "saaz", "amount_g": 25, "use": "boil", "time_min": 30, "form": "pellet" },
+    { "hop_id": "saaz", "amount_g": 20, "use": "boil", "time_min": 10, "form": "pellet" }
+  ],
+  "cultures": [
+    { "culture_id": "wlp802", "amount_g_or_ml": 23, "_note": "Two packets or starter for 20L" }
+  ],
+  "process": {
+    "water_profile": {
+      "name": "Pilsen (soft)",
+      "calcium_ppm": 7, "magnesium_ppm": 2, "sodium_ppm": 2,
+      "sulfate_ppm": 5, "chloride_ppm": 5, "bicarbonate_ppm": 15
+    },
+    "mash": {
+      "steps": [
+        { "name": "Sacc rest", "temperature_c": 66, "duration_min": 60, "type": "infusion", "rest_purpose": "alpha-amylase" },
+        { "name": "Mash out", "temperature_c": 76, "duration_min": 10, "type": "temperature", "rest_purpose": "mash-out" }
+      ],
+      "water_grain_ratio_l_per_kg": 3.0,
+      "sparge": "fly",
+      "target_ph": 5.3
+    },
+    "boil": {
+      "duration_min": 90,
+      "vigour": "vigorous"
+    },
+    "fermentation": {
+      "pitch_temp_c": 10,
+      "pitch_rate_million_cells_per_ml_per_plato": 1.5,
+      "oxygenation": "shake",
+      "steps": [
+        {
+          "name": "Primary",
+          "type": "primary",
+          "start_condition": { "type": "time-after-pitch", "value": 0 },
+          "temperature_c": 12,
+          "end_condition": { "type": "duration-days", "value": 14 }
+        },
+        {
+          "name": "Diacetyl rest",
+          "type": "diacetyl-rest",
+          "start_condition": { "type": "previous-step-end", "value": 0 },
+          "temperature_c": 16,
+          "ramp_rate_c_per_day": 3,
+          "end_condition": { "type": "duration-days", "value": 3 }
+        },
+        {
+          "name": "Cold crash",
+          "type": "crash",
+          "start_condition": { "type": "previous-step-end", "value": 0 },
+          "temperature_c": 2,
+          "ramp_rate_c_per_day": -2,
+          "end_condition": { "type": "temp-reaches", "value": 2 }
+        },
+        {
+          "name": "Lagering",
+          "type": "lagering",
+          "start_condition": { "type": "previous-step-end", "value": 0 },
+          "temperature_c": 2,
+          "end_condition": { "type": "duration-days", "value": 21 }
+        }
+      ]
+    },
+    "packaging": {
+      "method": "keg",
+      "carbonation_volumes_co2": 2.5,
+      "force_carb": {
+        "method": "set-and-forget",
+        "pressure_psi": 11,
+        "temperature_c": 2,
+        "duration_hours": 168
+      },
+      "serving_temp_c": 4
+    }
+  },
+  "expected_profile": {
+    "overall_summary": "Crisp, bitter, and floral. A firm Saaz backbone dominates with bready malt underneath. Dry, refreshing, and built for session drinking.",
+    "dominant_descriptors": ["floral", "spicy", "bready", "crisp", "bitter"],
+    "body": "medium-light",
+    "bitterness_perception": "medium-high",
+    "sweetness": "dry",
+    "finish": "Crisp and dry with a lingering herbal hop bite"
+  },
+  "tips": [
+    "Soft water is key. Hard water muddies the delicate Saaz character.",
+    "A 90-minute boil helps drive off DMS from the Pilsner malt.",
+    "Pitch cold and keep it there. Czech Pilsners are unforgiving of warm fermentation.",
+    "Don't under-hop. The firm bitterness is what separates a Czech Pils from a German Helles."
+  ],
+  "common_mistakes": [
+    "Using hard brewing water (makes it taste muddled)",
+    "Under-hopping (ends up tasting like a bland lager)",
+    "Fermenting too warm (produces fruity esters that clash with the noble hop)",
+    "Rushing the lagering phase (needs time to mellow and clear)"
+  ]
+}

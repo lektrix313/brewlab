@@ -1,10 +1,15 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Animated, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppStore } from '../../src/stores/appStore';
 import { useRouter } from 'expo-router';
-import { calculateRecipeStats } from '../../src/lib/brewing/helpers';
+import { calculateRecipeStats, scaleRecipeToBatchSize } from '../../src/lib/brewing/helpers';
 import { useFadeIn, useStagger } from '../../src/lib/animations';
-import { Plus, FlaskConical, Beaker } from 'lucide-react-native';
+import { hapticImpact } from '../../src/lib/haptics';
+import { Plus, FlaskConical, Beaker, X, ChevronRight, Globe, GitFork } from 'lucide-react-native';
+import { useState, useEffect } from 'react';
+import { apiClient } from '../../src/lib/api';
+import { getSyncToken } from '../../src/lib/sync/engine';
+import { StyleTemplate } from '../../src/lib/beerjson/types';
 
 const F = {
   display: { fontFamily: 'Newsreader_600SemiBold' },
@@ -14,6 +19,8 @@ const F = {
   bodySemiBold: { fontFamily: 'Inter_600SemiBold' },
   mono: { fontFamily: 'SpaceGrotesk_500Medium' },
 };
+
+const BATCH_PRESETS = [10, 15, 20, 23, 25];
 
 export default function CreateScreen() {
   const recipes = useAppStore((s) => s.recipes);
@@ -27,7 +34,19 @@ export default function CreateScreen() {
   const router = useRouter();
   const fade = useFadeIn(0);
 
-  function instantiateTemplate(template: typeof templates[0]) {
+  const [selectedTemplate, setSelectedTemplate] = useState<StyleTemplate | null>(null);
+  const [batchSizeL, setBatchSizeL] = useState(20);
+  const [publicRecipes, setPublicRecipes] = useState<any[]>([]);
+  const [showCommunity, setShowCommunity] = useState(false);
+
+  useEffect(() => {
+    apiClient.get<{ data: any[] }>('/recipes/public', undefined)
+      .then((res) => setPublicRecipes(res.data ?? []))
+      .catch(() => {});
+  }, []);
+
+  function instantiateTemplate(template: StyleTemplate, sizeL: number) {
+    hapticImpact('success');
     const resolvedFermentables = template.fermentables.map((fa) => ({
       ...fa,
       fermentable: fermentables.find((f) => f.id === fa.fermentable_id)!,
@@ -41,9 +60,8 @@ export default function CreateScreen() {
       culture: cultures.find((c) => c.id === ca.culture_id)!,
     }));
     const style = styles.find((s) => s.bjcp_id === template.style_id);
-    const stats = calculateRecipeStats(resolvedFermentables, resolvedHops, resolvedCultures, template.base_batch_size_l, 75);
 
-    const recipe = {
+    const baseRecipe = {
       id: `recipe-${Date.now()}`,
       author_id: 'local-user',
       name: template.name,
@@ -60,8 +78,12 @@ export default function CreateScreen() {
       is_public: false,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      ...stats,
+      ...calculateRecipeStats(resolvedFermentables, resolvedHops, resolvedCultures, template.base_batch_size_l, 75),
     };
+
+    const recipe = sizeL === template.base_batch_size_l
+      ? baseRecipe
+      : scaleRecipeToBatchSize(baseRecipe, sizeL);
 
     addRecipe(recipe);
     const batch = {
@@ -82,6 +104,7 @@ export default function CreateScreen() {
       updated_at: new Date().toISOString(),
     };
     addBatch(batch);
+    setSelectedTemplate(null);
     router.push(`/batch/${batch.id}`);
   }
 
@@ -102,7 +125,7 @@ export default function CreateScreen() {
 
         {/* New Recipe CTA */}
         <TouchableOpacity
-          onPress={() => router.push('/recipe/new' as any)}
+          onPress={() => { hapticImpact('light'); router.push('/recipe/new' as any); }}
           style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#B8633A', height: 52, borderRadius: 10, gap: 8, marginTop: 8 }}
           activeOpacity={0.8}
         >
@@ -139,6 +162,53 @@ export default function CreateScreen() {
           </View>
         )}
 
+        {/* Community */}
+        <TouchableOpacity
+          onPress={() => setShowCommunity(!showCommunity)}
+          style={[styles.card, { marginTop: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
+          activeOpacity={0.8}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <Globe size={20} color="#B8633A" strokeWidth={1.5} />
+            <View>
+              <Text style={[F.display, { fontSize: 18, lineHeight: 24, color: '#1A1A1A' }]}>Community</Text>
+              <Text style={[F.body, { fontSize: 13, color: '#6E6E6E' }]}>
+                {publicRecipes.length} public recipe{publicRecipes.length !== 1 ? 's' : ''} shared
+              </Text>
+            </View>
+          </View>
+          <ChevronRight
+            size={20}
+            color="#6E6E6E"
+            strokeWidth={2}
+            style={{ transform: [{ rotate: showCommunity ? '90deg' : '0deg' }] }}
+          />
+        </TouchableOpacity>
+
+        {showCommunity && publicRecipes.length > 0 && (
+          <View style={{ marginTop: 8 }}>
+            {publicRecipes.map((recipe) => (
+              <TouchableOpacity
+                key={recipe.id}
+                onPress={() => router.push(`/recipe/${recipe.id}`)}
+                activeOpacity={0.9}
+                style={styles.card}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[F.display, { fontSize: 16, lineHeight: 22, color: '#1A1A1A' }]}>{recipe.name}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6, gap: 12 }}>
+                      <Text style={[F.mono, { fontSize: 12, color: '#6E6E6E' }]}>{(recipe.estimatedAbvPct ?? 0).toFixed(1)}% ABV</Text>
+                      <Text style={[F.mono, { fontSize: 12, color: '#6E6E6E' }]}>IBU {recipe.estimatedIbu ?? 0}</Text>
+                    </View>
+                  </View>
+                  <GitFork size={18} color="#B8633A" strokeWidth={1.5} />
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
         {/* Templates */}
         <View style={{ marginTop: 32, marginBottom: 24 }}>
           <Text style={[F.display, { fontSize: 22, lineHeight: 28, color: '#1A1A1A', marginBottom: 12 }]}>
@@ -155,7 +225,7 @@ export default function CreateScreen() {
             return (
               <Animated.View key={template.id} style={{ opacity: anim?.opacity ?? 1, transform: [{ translateY: anim?.translateY ?? 0 }] }}>
                 <TouchableOpacity
-                  onPress={() => instantiateTemplate(template)}
+                  onPress={() => { hapticImpact('medium'); setSelectedTemplate(template); setBatchSizeL(template.base_batch_size_l); }}
                   activeOpacity={0.9}
                   style={styles.card}
                 >
@@ -182,6 +252,78 @@ export default function CreateScreen() {
           })}
         </View>
       </Animated.ScrollView>
+
+      {/* Batch Size Modal */}
+      <Modal
+        visible={selectedTemplate !== null}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setSelectedTemplate(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+              <View>
+                <Text style={[F.display, { fontSize: 22, lineHeight: 28, color: '#1A1A1A' }]}>
+                  {selectedTemplate?.name}
+                </Text>
+                <Text style={[F.body, { fontSize: 13, color: '#6E6E6E', marginTop: 4 }]}>
+                  Pick your batch size
+                </Text>
+              </View>
+              <TouchableOpacity onPress={() => setSelectedTemplate(null)} activeOpacity={0.8}>
+                <X size={24} color="#6E6E6E" strokeWidth={1.5} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 24 }}>
+              {BATCH_PRESETS.map((size) => (
+                <TouchableOpacity
+                  key={size}
+                  onPress={() => setBatchSizeL(size)}
+                  style={{
+                    flex: 1,
+                    minWidth: 70,
+                    alignItems: 'center',
+                    paddingVertical: 14,
+                    borderRadius: 10,
+                    backgroundColor: batchSizeL === size ? '#B8633A' : '#FAF6EE',
+                    borderWidth: 1,
+                    borderColor: batchSizeL === size ? '#B8633A' : '#EBE3D2',
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[F.bodySemiBold, { fontSize: 16, color: batchSizeL === size ? '#F5F0E6' : '#1A1A1A' }]}>
+                    {size}L
+                  </Text>
+                  <Text style={[F.body, { fontSize: 11, color: batchSizeL === size ? '#F5F0E6' : '#6E6E6E', marginTop: 2, opacity: batchSizeL === size ? 0.8 : 1 }]}>
+                    {size === selectedTemplate?.base_batch_size_l ? 'Template default' : 'Scaled'}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <TouchableOpacity
+              onPress={() => selectedTemplate && instantiateTemplate(selectedTemplate, batchSizeL)}
+              style={{
+                backgroundColor: '#B8633A',
+                height: 56,
+                borderRadius: 10,
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'row',
+                gap: 8,
+              }}
+              activeOpacity={0.8}
+            >
+              <Text style={[F.bodySemiBold, { fontSize: 15, color: '#F5F0E6' }]}>
+                Brew this — {batchSizeL}L
+              </Text>
+              <ChevronRight size={18} color="#F5F0E6" strokeWidth={2} />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -194,5 +336,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#EBE3D2',
     marginBottom: 12,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#F5F0E6',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 24,
+    paddingBottom: 40,
   },
 });

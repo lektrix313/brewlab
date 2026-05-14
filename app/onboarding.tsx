@@ -4,13 +4,28 @@ import { useRouter } from 'expo-router';
 import { copy } from '../src/lib/copy';
 import { Button } from '../src/components/ui/Button';
 import { Card } from '../src/components/ui/Card';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAudio } from '../src/hooks/useAudio';
+import { Volume2, VolumeX } from 'lucide-react-native';
 
 export default function OnboardingScreen() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [experience, setExperience] = useState<string | null>(null);
   const [unitSystem, setUnitSystem] = useState<'metric' | 'imperial'>('metric');
+  const { load, play, stop, isPlaying } = useAudio();
+
+  // Load welcome audio on mount
+  useEffect(() => {
+    // Replace this with your actual ElevenLabs-generated audio:
+    // 1. Generate at https://elevenlabs.io
+    // 2. Voice: "Adam" or "Bella" work great for British brewing-mate tone
+    // 3. Text: "Welcome to Brew Lab."
+    // 4. Download MP3 and place at assets/audio/welcome.mp3
+    load(require('../assets/audio/welcome.mp3')).catch(() => {
+      // Audio not found yet — silent fail
+    });
+  }, [load]);
 
   const steps = [
     {
@@ -18,18 +33,21 @@ export default function OnboardingScreen() {
       body: copy.onboarding.welcomeBody,
       cta: copy.onboarding.getPitching,
       action: () => setStep(1),
+      hasVoice: true,
     },
     {
       title: copy.onboarding.chooseLevel,
       body: copy.onboarding.levelHelp,
       cta: copy.onboarding.continue,
       action: () => setStep(2),
+      hasVoice: false,
     },
     {
       title: copy.onboarding.unitsTitle,
       body: copy.onboarding.unitsBody,
       cta: copy.onboarding.done,
       action: () => router.replace('/(tabs)' as any),
+      hasVoice: false,
     },
   ];
 
@@ -59,6 +77,24 @@ export default function OnboardingScreen() {
           <Text className="text-[17px] text-ink-soft mt-4 leading-relaxed">
             {current.body}
           </Text>
+
+          {/* Voice welcome button */}
+          {current.hasVoice && (
+            <TouchableOpacity
+              onPress={isPlaying ? stop : play}
+              className="mt-8 self-start flex-row items-center gap-3 bg-copper-soft px-5 py-3 rounded-xl"
+              activeOpacity={0.8}
+            >
+              {isPlaying ? (
+                <VolumeX size={20} color="#8E4A2A" strokeWidth={2} />
+              ) : (
+                <Volume2 size={20} color="#8E4A2A" strokeWidth={2} />
+              )}
+              <Text className="text-[15px] font-medium text-copper-dark">
+                {isPlaying ? 'Stop' : 'Hear it from us'}
+              </Text>
+            </TouchableOpacity>
+          )}
 
           {step === 1 && (
             <View className="gap-3 mt-8">

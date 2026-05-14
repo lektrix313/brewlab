@@ -373,3 +373,51 @@ export interface AISuggestion {
   risk: 'low' | 'medium' | 'high';
   reversible: boolean;
 }
+
+// ─── Inventory types ────────────────────────────────────────────────────────
+
+export interface InventoryItem {
+  id: string;
+  user_id: string;
+  ingredient_type: 'fermentable' | 'hop' | 'culture' | 'misc';
+  ingredient_id?: string;
+  custom_name?: string;
+  amount: number;
+  unit: string;
+  cost_per_unit?: number;
+  cost_currency: string;
+  supplier?: string;
+  purchase_date?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ShoppingListItem {
+  id: string;
+  user_id: string;
+  ingredient_type: 'fermentable' | 'hop' | 'culture' | 'misc';
+  ingredient_id?: string;
+  custom_name?: string;
+  amount_needed: number;
+  unit: string;
+  purchased: boolean;
+  linked_inventory_item_id?: string;
+  created_at: string;
+}
+
+export interface BatchCost {
+  id: string;
+  batch_id: string;
+  user_id: string;
+  total_cost: number;
+  currency: string;
+  cost_breakdown_json?: Array<{
+    ingredientName: string;
+    amount: number;
+    unit: string;
+    costPerUnit: number;
+    lineTotal: number;
+  }>;
+  created_at: string;
+  updated_at: string;
+}

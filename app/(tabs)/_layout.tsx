@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Newspaper, FlaskConical, PlusCircle, User } from 'lucide-react-native';
+import { Newspaper, FlaskConical, PlusCircle, User, Package } from 'lucide-react-native';
 
 export default function TabLayout() {
   return (
@@ -48,6 +48,15 @@ export default function TabLayout() {
           title: 'Create',
           tabBarIcon: ({ color, size }) => (
             <PlusCircle size={size} color={color} strokeWidth={1.5} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="inventory"
+        options={{
+          title: 'Pantry',
+          tabBarIcon: ({ color, size }) => (
+            <Package size={size} color={color} strokeWidth={1.5} />
           ),
         }}
       />

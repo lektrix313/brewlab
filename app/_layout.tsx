@@ -2,11 +2,15 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { View } from 'react-native';
+import { ClerkProvider } from '@clerk/clerk-expo';
+import { tokenCache } from '../src/lib/auth';
 import '../src/global.compiled.css';
 import { useAppStore } from '../src/stores/appStore';
 import { getSeedData } from '../src/hooks/useSeedData';
 import { calculateRecipeStats } from '../src/lib/brewing/helpers';
 import { useEffect, useState } from 'react';
+import { useSync } from '../src/hooks/useSync';
+import { configureNotifications, requestNotificationPermissions } from '../src/lib/notifications';
 import { Batch, Recipe } from '../src/lib/beerjson/types';
 import {
   useFonts,
@@ -102,6 +106,13 @@ function createBatch(
 }
 
 export default function RootLayout() {
+  useSync();
+
+  useEffect(() => {
+    configureNotifications();
+    requestNotificationPermissions();
+  }, []);
+
   const [fontsLoaded] = useFonts({
     Newsreader_400Regular,
     Newsreader_400Regular_Italic,
@@ -151,9 +162,13 @@ export default function RootLayout() {
   }
 
   return (
-    <SafeAreaProvider>
-      <View className="flex-1 bg-cream">
-        <Stack
+    <ClerkProvider
+      publishableKey="pk_test_ZW5oYW5jZWQtdG91Y2FuLTI4LmNsZXJrLmFjY291bnRzLmRldiQ"
+      tokenCache={tokenCache}
+    >
+      <SafeAreaProvider>
+        <View className="flex-1 bg-cream">
+          <Stack
           screenOptions={{
             headerShown: false,
             contentStyle: { backgroundColor: '#F5F0E6' },
@@ -167,5 +182,6 @@ export default function RootLayout() {
         <StatusBar style="dark" />
       </View>
     </SafeAreaProvider>
+    </ClerkProvider>
   );
 }

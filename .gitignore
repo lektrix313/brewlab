@@ -44,3 +44,7 @@ yarn-error.*
 android/app/*.keystore
 android/local.properties
 
+
+# Android keystore
+android/keystore.jks
+

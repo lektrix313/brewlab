@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "brewlab",
+    "name": "BrewLab",
     "slug": "brewlab",
     "scheme": "tun",
     "version": "1.0.0",
@@ -14,7 +14,8 @@
       "backgroundColor": "#F5F0E6"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sodacreative.brewlab"
     },
     "android": {
       "adaptiveIcon": {

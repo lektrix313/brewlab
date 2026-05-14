@@ -4,6 +4,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAppStore } from '../../../../src/stores/appStore';
 import { useEffect, useRef, useState } from 'react';
 import { X, Thermometer, ArrowRight } from 'lucide-react-native';
+import { formatTemp } from '../../../../src/lib/units';
+import { useAppStore } from '../../../../src/stores/appStore';
 
 const F = {
   display: { fontFamily: 'Newsreader_600SemiBold' },
@@ -35,6 +37,7 @@ export default function CoolScreen() {
 
   const recipe = batch?.recipe_snapshot;
   const targetPitchTemp = recipe?.process.fermentation.pitch_temp_c ?? 18;
+  const unitSystem = useAppStore((s) => s.unitSystem);
 
   useEffect(() => {
     if (!session) return;
@@ -116,8 +119,8 @@ export default function CoolScreen() {
               <Thermometer size={18} color="#B8633A" strokeWidth={1.5} />
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-              <Text style={[F.mono, { fontSize: 48, lineHeight: 56, color: '#1A1A1A' }]}>{wortTemp}</Text>
-              <Text style={[F.body, { fontSize: 18, color: '#6E6E6E', marginLeft: 2 }]}>°C</Text>
+              <Text style={[F.mono, { fontSize: 48, lineHeight: 56, color: '#1A1A1A' }]}>{formatTemp(wortTemp, unitSystem).replace(/°[CF]/, '')}</Text>
+              <Text style={[F.body, { fontSize: 18, color: '#6E6E6E', marginLeft: 2 }]}>{unitSystem === 'metric' ? '°C' : '°F'}</Text>
             </View>
           </View>
           <View style={[styles.card, { flex: 1 }]}>
@@ -134,7 +137,7 @@ export default function CoolScreen() {
         {/* Tip card */}
         <View style={[styles.card, { marginTop: 16 }]}>
           <Text style={[F.displayItalic, { fontSize: 15, lineHeight: 22, color: '#1A1A1A' }]}>
-            "Keep the whirlpool spinning. Don't open the kettle till it's down to {targetPitchTemp}°C."
+            "Keep the whirlpool spinning. Don't open the kettle till it's down to {formatTemp(targetPitchTemp, unitSystem)}."
           </Text>
         </View>
 
